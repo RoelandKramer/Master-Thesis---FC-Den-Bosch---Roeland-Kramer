@@ -1,0 +1,825 @@
+
+% Hoe wil ik dat de thesis eruit ziet:
+
+% 1. Introductie - belang corners en relevante
+% 2. Problem statement, erg uitgebreid 
+% 3. Academic Context (Literature Review)
+% 4. Methodology \& Data zoals nu
+% 5. Results
+% 6. Use cases / Application of results
+% 7. Discussion
+% 8. Conclusions
+
+
+
+\chapter{Methods}
+\label{sec:methods}
+
+\section{Research Design}
+\label{sec:research_design}
+
+This study adopts a quantitative, data-driven research design that sequentially
+builds five analytical layers, each corresponding to one sub-question (SQ).
+The overarching logic is as follows: corner kicks are first characterised from both
+sides of the ball (SQ1: defensive setup; SQ2: offensive pattern), then matched to
+quantify effectiveness (SQ3), enriched with individual player attributes (SQ4), and
+finally synthesised into a practical preparation tool (SQ5).
+All analyses are applied to the same dataset, ensuring consistency across sub-questions.
+Figure~\ref{fig:pipeline} provides an overview of the analytical pipeline.
+
+% \begin{figure}[h]
+%   \centering
+%   \includegraphics[width=\linewidth]{figures/pipeline_overview.pdf}
+%   \caption{Overview of the five-layer analytical pipeline.
+%            Arrows indicate data flow between layers.}
+%   \label{fig:pipeline}
+% \end{figure}
+
+\section{Data}
+\label{sec:data}
+
+\subsection{Data Sources}
+\label{sec:data_sources}
+
+All data were provided by SciSports through FC Den Bosch. Two data types were used.
+
+\subsubsection{Event data.}
+Event data contain one record per on-ball action, including the action type
+(e.g.\ \texttt{CORNER\_CROSSED}, \texttt{CORNER\_SHORT}, \texttt{HEADER},
+\texttt{CLEARANCE}), the player and team involved, the ball's start and end
+coordinates in metres (origin at pitch centre, $x$-axis along the length,
+$y$-axis along the width), the timestamp in milliseconds, and derived metrics
+such as delivery length, angle, expected goals (xG), and expected assists (xA).
+Additionally, each event contains a \texttt{sequenceId} that groups all actions
+within a single possession sequence, enabling reconstruction of what happened
+after every corner kick.
+
+\subsubsection{Tracking data.}
+Tracking data record the $(x, y)$ position of every player and the ball at
+10~Hz (one frame per 100~ms). Player records include a unique player identifier
+and shirt number. Ball records include an additional $z$-coordinate (height in
+metres) allowing computation of ball flight characteristics.
+Tracking data are provided in positional JSON files aligned to the same
+millisecond clock as the event data. Where a corner event is present in the
+event data and a corresponding tracking frame exists within a 200~ms tolerance,
+the corner is marked as \textit{synchronised} (\texttt{synced = True}).
+
+\section{Dataset Composition}
+\label{sec:dataset_composition}
+
+Data span the 2025–2026 Dutch Eerste Divisie season, covering 281 unique matches
+from 20 clubs. All 1,893 corner kicks that appear in the event data were extracted,
+of which all 1,893 are synchronised with tracking data. These consist of 1,401
+direct (crossed) corners and 492 short corners.
+Table~\ref{tab:dataset_overview} summarises the dataset.
+
+\begin{table}[h]
+  \centering
+  \caption{Dataset summary.}
+  \label{tab:dataset_overview}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Property} & \textbf{Value} \\
+    \midrule
+    Matches & 281 \\
+    Clubs & 20 \\
+    Total corner kicks & 1,893 \\
+    \quad Direct (crossed) & 1,401 \\
+    \quad Short & 492 \\
+    Synced with tracking & 1,893 (100\%) \\
+    Manually labelled corners & 86 \\
+    \quad Labelled attacker rows & 389 \\
+    \quad Labelled defender rows & 509 \\
+    Tracking frame rate & 10 Hz \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Manual Labelling}
+\label{sec:manual_labelling}
+
+A subset of 86 corners was manually labelled by the primary researcher using a
+custom labelling tool (\texttt{labeling\_tool.py}) that overlays tracking data
+on a 2D pitch visualisation. For each corner, the following were annotated:
+\begin{itemize}
+  \item \textbf{Delivery type}: swing direction and target zone (see
+        Section~\ref{sec:sq2_delivery});
+  \item \textbf{Ball flight}: one of five trajectory categories
+        (see Section~\ref{sec:sq2_flight});
+  \item \textbf{Attacker run roles}: per-player tactical role for all attacking
+        outfield players (see Section~\ref{sec:sq2_runs});
+  \item \textbf{Defender roles}: per-player defensive role
+        (see Section~\ref{sec:sq1});
+  \item \textbf{Man-marking assignments}: for defenders classified as man-markers,
+        the jersey number of the specific attacker being tracked.
+\end{itemize}
+Labels were recorded in a structured spreadsheet
+(\texttt{labeling\_sheet\_v2.csv}) and used as ground truth for model training
+and validation.
+Inter-rater reliability was not formally assessed, as only one annotator was
+used; this is acknowledged as a limitation in Section~\ref{sec:limitations}.
+
+\paragraph{Zone system.}
+The pitch area surrounding the goal was divided according to the zone system
+depicted in Figure~\ref{fig:zone_system}. A central column of width 18.32~m
+(the goal area width) was extended perpendicularly from the goal line up to
+the edge of the penalty arc ($\approx20.15$~m from the goal line). This column
+was subdivided into three lateral lanes of equal width (6.11~m each): column~1
+(near post), column~2 (central, between the posts), and column~3 (far post).
+Four depth bands were defined within this column:
+\begin{itemize}
+  \item \textbf{GA} (Goal Area): 0–5.5~m from the goal line ($x > 47.0$~m);
+  \item \textbf{PA} (Penalty Area): 5.5–11.0~m ($x > 41.5$~m);
+  \item \textbf{PE} (Penalty Edge): 11.0–16.5~m ($x > 36.0$~m);
+  \item \textbf{PC} (Penalty Curve/Arc): 16.5–20.15~m ($x > 32.35$~m).
+\end{itemize}
+Beyond the central column, two lateral regions were defined: \textbf{Front Zone}
+(near side of the penalty area, $y_\mathrm{near} > 9.16$~m and $x > 36.0$~m)
+and \textbf{Edge Zone} (far side, $y_\mathrm{near} < -9.16$~m and
+$x > 36.0$~m), where $y_\mathrm{near}$ denotes the signed lateral distance from
+the goal centre after normalisation to attacking-right coordinates.
+
+% \begin{figure}[h]
+%   \centering
+%   \includegraphics[width=0.7\linewidth]{figures/zone_system.pdf}
+%   \caption{Zone system used for delivery and player position classification.
+%            The central column (18.32~m wide) is divided into four depth bands
+%            and three lateral lanes. GA = Goal Area, PA = Penalty Area,
+%            PE = Penalty Edge, PC = Penalty Curve. Numbers 1--3 denote near,
+%            central, and far lateral columns respectively.}
+%   \label{fig:zone_system}
+% \end{figure}
+
+\section{SQ1: Defensive Corner Setup Classification}
+\label{sec:sq1}
+
+\subsection{Individual Defender Role Classification}
+\label{sec:sq1_individual}
+
+The classification of individual defender roles was developed in a companion study
+(\emph{Defensive Corners Onderzoek}) and is described in full detail therein.
+Briefly, an ensemble classifier (Random Forest, Extra Trees, and Gradient Boosting,
+averaged) assigns each defending outfield player to one of four roles:
+\texttt{MAN} (man-marker), \texttt{ZONAL} (covers a pitch zone),
+\texttt{SHORT} (guards the short-corner option), or \texttt{COUNTER}
+(positioned for transition defence).
+The classifier uses pair-wise features computed over a 5,000~ms and a 3,000~ms
+tracking window prior to the corner kick, including mean pairwise distance
+to each attacker, motion correlation, tracking fraction, distance to the ball,
+and mutual nearest-neighbour indicators.
+A leave-one-match-out cross-validation on the manually labelled dataset achieved
+a role accuracy of 93\% and a marking assignment accuracy (Hungarian-algorithm
+assignment of man-markers to specific attackers) of approximately 80\%.
+
+\subsection{Team-Level Defensive Strategy}
+\label{sec:sq1_team}
+
+Individual role labels are aggregated per corner into a team-level defensive
+strategy. Three strategy dimensions are defined:
+\begin{enumerate}
+  \item \textbf{Marking intensity}: the number of man-markers present
+        (0–1: predominantly zonal; 2–3: mixed; $\geq$4: predominantly man-marking);
+  \item \textbf{Short defender present}: binary (yes/no), indicating whether at
+        least one defender is assigned to guard the short-corner option;
+  \item \textbf{Counter defender present}: binary (yes/no), indicating whether at
+        least one defender remains in the defensive half.
+\end{enumerate}
+These dimensions produce a compact categorical label for each corner, referred
+to as the \textit{defensive strategy type}. This label serves as the defensive
+predictor variable in SQ3.
+
+\subsection{Team-Level Profile Estimation}
+\label{sec:sq1_team_profile}
+
+For each club with a minimum of 10 home corners in the dataset, a \textit{defensive
+profile} is computed as the distribution over defensive strategy types across all
+their corners as the defending team. This profile is used in SQ5 (the tactical
+preparation tool) to characterise how a specific upcoming opponent typically
+defends corners.
+
+\section{SQ2: Offensive Corner Pattern Classification}
+\label{sec:sq2}
+
+Offensive corner patterns are characterised along three independent dimensions:
+(i) delivery type, (ii) ball flight trajectory, and (iii) attacker movement
+patterns. Together, these define the \textit{offensive corner profile} for each
+corner.
+
+\subsection{Delivery Type}
+\label{sec:sq2_delivery}
+
+Delivery type is defined as the combination of swing direction and target zone.
+
+\subsubsection{Swing direction.}
+Swing direction is determined from the kicker's foot and the corner side using
+the rule: a right-footed kick from the right corner flag produces an inswing
+(\texttt{IN}); the same foot from the left corner flag produces an outswing
+(\texttt{OUT}). Left foot follows the mirror rule. Where foot data are ambiguous
+(\texttt{FEET}), the swing label provided by the SciSports event pipeline is
+used. Swing direction is validated against the manually labelled subset, yielding
+92\% agreement.
+
+\subsubsection{Target zone.}
+For direct corners, the target zone is derived from the ball's endpoint
+coordinates $(x_\mathrm{end}, y_\mathrm{end})$ in the event data using the zone
+classification described in Section~\ref{sec:data}. Validation against the 51~manually labelled delivery zones yields the following
+agreement rates: full zone label (e.g.\ \texttt{GA2}): 64\%;
+depth band only (GA/PA/PE/PC): 74\%; lateral column only (near/central/far):
+76\%.
+The remaining discrepancies are attributable to the fact that the SciSports
+event data records the ball's position at the moment of \emph{first player
+contact} (header, clearance) rather than the ball's intended landing zone.
+An extensive comparison of alternative tracking-based methods
+(ball position at minimum forward distance, at mid-flight time, and at peak
+height) found none to exceed 26\% zone accuracy, confirming that the event
+endpoint is the best available automated proxy.
+Consequently, the SQ3 effectiveness analysis uses the full zone label only for
+the 51~manually labelled corners, and relies on the more reliable depth band
+(74\% accuracy) and swing direction (92\% accuracy) dimensions for the full
+1,893-corner dataset. The full zone label for unlabelled corners should be
+treated as approximate and is not used in inferential models.
+
+The full set of delivery type codes is given in Table~\ref{tab:delivery_types}.
+
+\begin{table}[h]
+  \centering
+  \caption{Delivery type codes for direct corners. \texttt{in}/\texttt{out}
+           denote inswing and outswing respectively. Rows marked with $*$ are
+           outer-zone deliveries.}
+  \label{tab:delivery_types}
+  \begin{tabular}{ll|ll}
+    \toprule
+    \textbf{Code} & \textbf{Description} &
+    \textbf{Code} & \textbf{Description} \\
+    \midrule
+    \texttt{inGA1} & Inswing, near GA  & \texttt{outGA1} & Outswing, near GA \\
+    \texttt{inGA2} & Inswing, central GA & \texttt{outGA2} & Outswing, central GA \\
+    \texttt{inGA3} & Inswing, far GA   & \texttt{outGA3} & Outswing, far GA \\
+    \texttt{inPA1} & Inswing, near PA  & \texttt{outPA1} & Outswing, near PA \\
+    \texttt{inPA2} & Inswing, central PA & \texttt{outPA2} & Outswing, central PA \\
+    \texttt{inPA3} & Inswing, far PA   & \texttt{outPA3} & Outswing, far PA \\
+    \texttt{inPS}  & Inswing, penalty spot area & \texttt{outPS} & Outswing, penalty spot \\
+    \texttt{inPE}  & Inswing, penalty edge & \texttt{outPE} & Outswing, penalty edge \\
+    \texttt{inFront}$^*$  & Inswing, near-side outer &
+    \texttt{outFront}$^*$ & Outswing, near-side outer \\
+    \texttt{inEdge}$^*$   & Inswing, far-side outer &
+    \texttt{outEdge}$^*$  & Outswing, far-side outer \\
+    \texttt{inOther}$^*$  & Inswing, outside PA depth &
+    \texttt{outOther}$^*$ & Outswing, outside PA depth \\
+    \midrule
+    \multicolumn{4}{l}{\texttt{SHORT\_1PASS}, \texttt{SHORT\_2PASS},
+                        \texttt{SHORT\_SHOT}, \texttt{SHORT\_RECYCLE}
+                        (short corners, see Section~\ref{sec:sq2_short})} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Ball Flight Trajectory}
+\label{sec:sq2_flight}
+
+Ball flight is classified from the peak height ($z_\mathrm{peak}$, metres) of
+the ball during the delivery phase, extracted from tracking data. Four categories
+are defined. An initial five-category scheme including a separate
+\texttt{DRIVEN} band was tested but subsequently merged into \texttt{MEDIUM}
+after manual inspection confirmed that the 3.0–5.5~m range did not represent a
+meaningfully distinct tactical category from the broader 3.0–8.0~m arc:
+
+\begin{table}[h]
+  \centering
+  \caption{Ball flight categories and their $z_\mathrm{peak}$ thresholds.}
+  \label{tab:flight}
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Category} & \textbf{Threshold} & \textbf{Description} \\
+    \midrule
+    \texttt{GROUND}  & $z_\mathrm{peak} \leq 0.5$~m & Along the ground; typical of cutbacks \\
+    \texttt{LOW}     & $0.5 < z_\mathrm{peak} \leq 3.0$~m & Low-driven, flat delivery \\
+    \texttt{MEDIUM}  & $3.0 < z_\mathrm{peak} \leq 8.0$~m & Flat-to-arc delivery \\
+    \texttt{FLOATED} & $z_\mathrm{peak} > 8.0$~m & High arc, slow descent \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Short Corner Sub-types}
+\label{sec:sq2_short}
+
+Short corners are classified using a detailed taxonomy derived from 21~manually
+labelled short corners, which records three components: (i) the number of passes
+in the sequence (counting the corner delivery itself as pass~1), (ii) the number
+of distinct attacking players involved, and (iii) the outcome of the sequence.
+Labels follow the format:
+\[
+  \texttt{SHORT\_\{n\}pass\{k\}players-\{result\}}
+\]
+where $n$ is the total pass count, $k$ the number of attacking players involved,
+and \textit{result} $\in$ \{\texttt{cross}, \texttt{shot}, \texttt{ballloss}\}.
+For example, \texttt{SHORT\_2pass3players-cross} describes a short corner in
+which the delivery is followed by one additional pass involving three attackers
+before a cross is delivered.
+
+This classification is applied to all 492 short corners in the dataset by
+tracing the event sequence from the corner delivery until either a cross, shot,
+or defensive ball-recovery event occurs. Only genuine PASS events (not carries
+or dribbles) are counted towards the pass total. An automated classifier
+achieves 81\% exact-label accuracy against the 21 ground-truth labels, with
+result accuracy (cross/shot/ballloss) of 86\% and player-count accuracy of 86\%.
+The four remaining discrepancies involve edge cases (crosses blocked into an
+out-of-play event, or sequences spanning multiple event sequence identifiers).
+
+For the SQ3 effectiveness analysis, short corner labels are further aggregated
+into nine bucketed types based on pass count ($\leq$1, 2, $\geq$3) and outcome
+(cross, shot, ballloss), ensuring a minimum cell size of $n \geq 20$
+per analytical group.
+
+\subsection{Attacker Movement Patterns}
+\label{sec:sq2_runs}
+
+Player movement during the 3-second pre-delivery window is characterised at two
+levels: the \textit{individual running line} and the \textit{corner movement
+profile}.
+
+\paragraph{Individual running line.}
+Each attacking outfield player (excluding the corner taker) is assigned a
+geometric running line label based on their starting zone (3~s before delivery)
+and ending zone (2~s after delivery), as well as their displacement:
+
+\begin{itemize}
+  \item \texttt{STATIC}: displacement $< 2.5$~m; player does not make a meaningful run;
+  \item \texttt{NEAR\_POST}: player ends in GA1 or PA1 (near-post side);
+  \item \texttt{FAR\_POST}: player ends in GA3 or PA3 (far-post side);
+  \item \texttt{CENTRAL}: player ends in GA2 or PA2 (central lane);
+  \item \texttt{CROSSING\_FN}: player starts in a far-side zone and ends in a
+        near-side zone (far-to-near crossing run);
+  \item \texttt{CROSSING\_NF}: player starts in a near-side zone and ends in a
+        far-side zone (near-to-far crossing run);
+  \item \texttt{EDGE}: player ends in the PE or PC depth band (positions for
+        second-phase shooting);
+  \item \texttt{SECOND\_PHASE}: player ends in an ED or OUT zone (outside the
+        penalty area; second-ball positioning).
+\end{itemize}
+
+Running line labels are derived rule-based from zone transitions and yield 99.5\%
+leave-one-corner-out accuracy on the manually labelled subset.
+
+\subsubsection{Corner movement profile.}
+The distribution of individual running lines within a corner is summarised as a
+\textit{movement profile string}: an unordered count-based label recording how
+many players execute each running line type. For example,
+\texttt{2NEAR\_1CENTRAL\_3SECOND\_PHASE\_4STATIC} denotes a corner in which
+two players run to the near post, one to the central zone, three position for
+second-phase balls, and four remain static. This label serves two purposes:
+first, it characterises the offensive setup in full detail; second, two
+categorical flags are derived from it:
+\begin{itemize}
+  \item \textbf{Static vs.\ dynamic}: a corner is classified as \textit{static}
+        if fewer than three players make a displacement $\geq 2.5$~m, and as
+        \textit{dynamic} otherwise;
+  \item \textbf{Dominant run direction}: the running line type with the highest
+        count (excluding \texttt{STATIC} and \texttt{SECOND\_PHASE}), used as a
+        single summary label when the full profile would produce overly sparse
+        analytical cells.
+\end{itemize}
+
+\subsubsection{Attacker tactical role (supplementary).}
+For the 86 manually labelled corners only, each attacker is also assigned a
+\textit{tactical role}: \texttt{TARGET} (intends to receive the ball),
+\texttt{DECOY} (creates space by pulling defenders), \texttt{BLOCK\_GK}
+(screens the goalkeeper), \texttt{BLOCK\_DEF} (screens a specific defender),
+\texttt{SECOND\_BALL} (positions for rebounds), or \texttt{STATIC}. A Random
+Forest classifier trained on this subset achieves 63\% accuracy
+(leave-one-corner-out). Because TARGET and DECOY are subjectively defined by
+tactical intent rather than observable geometry, this model is reported as a
+supplementary finding; the geometric running line classification is used as the
+primary offensive movement descriptor in SQ3.
+
+\subsection{Offensive Corner Profile}
+\label{sec:sq2_profile}
+
+The three dimensions — delivery type, ball flight category, and corner movement
+profile — together constitute the \textit{offensive corner profile}. Due to the
+high granularity of the full cross-product (potentially approaching one unique
+label per corner), the SQ3 effectiveness analysis operates on individual dimensions
+and their pairwise combinations rather than the full cross-product profile.
+Table~\ref{tab:offensive_dims} lists the analytical dimensions and their levels.
+
+\begin{table}[h]
+  \centering
+  \caption{Analytical dimensions of the offensive corner profile.
+           Dimensions are used individually or in pairwise combinations
+           in SQ3.}
+  \label{tab:offensive_dims}
+  \begin{tabular}{llr}
+    \toprule
+    \textbf{Dimension} & \textbf{Levels} & \textbf{$N$ levels} \\
+    \midrule
+    Swing direction & \texttt{IN}, \texttt{OUT} & 2 \\
+    Target zone depth & \texttt{GA}, \texttt{PA}, \texttt{PE/PC}, \texttt{FRONT/EDGE} & 4 \\
+    Lateral target column & \texttt{NEAR} (1), \texttt{CENTRAL} (2), \texttt{FAR} (3) & 3 \\
+    Ball flight & \texttt{GROUND}, \texttt{LOW}, \texttt{MEDIUM}, \texttt{FLOATED} & 4 \\
+    Setup type & \texttt{STATIC}, \texttt{DYNAMIC} & 2 \\
+    Dominant run direction & \texttt{NEAR\_POST}, \texttt{FAR\_POST},
+                             \texttt{CENTRAL}, \texttt{CROSSING}, \texttt{EDGE} & 5 \\
+    Short vs.\ direct & \texttt{SHORT}, \texttt{DIRECT} & 2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{SQ3: Effectiveness of Offensive Strategies Against Defensive Structures}
+\label{sec:sq3}
+
+\subsection{Outcome Variable}
+\label{sec:sq3_outcome}
+
+Following the recommendation in recent systematic reviews
+\citep[e.g.][]{Plakias2025, Casal2015}, corner kick effectiveness is
+measured using two complementary outcome indicators.
+
+\subsubsection{Corner Threat Score (CTS).}
+\citet{Lamberts2023} proposes the Corner Threat Score, defined as the harmonic
+mean of the delivery quality (xA) and conversion quality (xG) components:
+\begin{equation}
+  \mathrm{CTS} = \frac{2 \cdot \overline{\mathrm{xG}} \cdot \overline{\mathrm{xA}}}
+                       {\overline{\mathrm{xG}} + \overline{\mathrm{xA}}},
+  \label{eq:cts}
+\end{equation}
+where $\overline{\mathrm{xA}}$ is the SciSports expected-assist value on the
+corner delivery event, and $\overline{\mathrm{xG}}$ is the maximum expected-goals
+value of any shot attempt in the same possession sequence after the corner.
+When no shot occurs in the sequence, $\overline{\mathrm{xG}} = 0$ and CTS is
+set to zero, which is conservative but avoids imputation.
+CTS is the \textit{primary continuous effectiveness measure}.
+
+In this study, $\overline{\mathrm{xG}}$ is extracted by tracing each corner's
+\texttt{sequenceId} through the raw match event files and selecting the highest
+xG value among all subsequent \texttt{SHOT}, \texttt{HEADER}, and
+\texttt{SHOT\_FREE\_KICK} events in that sequence.
+Across all 1,401 direct corners, 347 (24.8\%) generated at least one shot;
+the remaining corners contribute CTS~= 0.
+The overall mean CTS for direct corners is 0.0175
+($\overline{\mathrm{xA}} = 0.018$; $\overline{\mathrm{xG}} = 0.040$).
+
+\subsubsection{Shot generation.}
+A binary indicator ($y_1 \in \{0,1\}$) of whether any shot event occurs within
+the corner sequence. Shot generation reflects whether the corner created
+a scoring opportunity independent of shot quality, and is used alongside CTS
+in the regression analysis.
+
+\subsection{Analytical Strategy}
+\label{sec:sq3_analysis}
+
+The effectiveness analysis proceeds in three steps.
+
+\subsubsection{Step 1 — Descriptive cross-tabulation.}
+For each combination of offensive dimension and defensive strategy type,
+mean CTS, mean xA, mean sequence xG, and shot rate are computed and displayed
+as a two-dimensional effectiveness matrix. Fisher's exact test is applied to shot
+generation counts for each cell pair; the Bonferroni correction adjusts for
+multiple comparisons. Only cells with $n \geq 15$ corners are reported; those
+with $n < 15$ are noted as insufficiently powered.
+
+\subsubsection{Step 2 — Logistic regression (shot generation).}
+A logistic regression model is fitted with shot generation ($y_1$) as the
+outcome:
+\begin{equation}
+  \log\frac{P(y_1=1)}{P(y_1=0)} = \beta_0 +
+    \beta_1 \cdot \mathrm{swing} +
+    \beta_2 \cdot \mathrm{zone\_depth} +
+    \beta_3 \cdot \mathrm{flight} +
+    \beta_4 \cdot \mathrm{setup\_type} +
+    \beta_5 \cdot \mathrm{def\_strategy} +
+    \beta_6 \cdot (\mathrm{swing} \times \mathrm{def\_strategy}) + \varepsilon,
+  \label{eq:logit}
+\end{equation}
+where categorical predictors are dummy-coded. The interaction term tests whether
+the effectiveness of a particular swing direction differs by defensive strategy
+type — the core hypothesis of SQ3. Model fit is assessed using the area under
+the receiver operating characteristic curve (AUC-ROC) and the log-likelihood
+ratio test against an intercept-only baseline.
+
+\subsubsection{Step 3 — Linear regression (CTS).}
+An ordinary least squares (OLS) regression of the same predictors on CTS is
+estimated alongside Equation~\ref{eq:logit}. Given the zero-inflated
+distribution of CTS (75.2\% of direct corners have CTS~= 0 owing to no
+subsequent shot), a two-part hurdle model \citep[see][for the approach in
+sports contexts]{Rathke2017} is considered as a robustness check.
+
+\subsubsection{Sample Size and Power}
+\label{sec:sq3_power}
+
+With 1,401 direct corners, a swing dimension (2 levels) and three defensive
+strategy types (3 levels), the average cell size is approximately
+$1401 / (2 \times 3) \approx 233$ corners. Interaction cells using the full
+delivery type code (22 levels) are considerably smaller; these are therefore
+not included in the regression model, and the analysis restricts the delivery
+dimension to the coarser decomposition in Table~\ref{tab:offensive_dims}.
+
+\subsection{Descriptive Effectiveness Results}
+\label{sec:sq3_descriptive}
+
+\subsubsection{Delivery type.}
+Table~\ref{tab:cts_by_delivery} reports mean CTS by delivery type for all
+groups with $n \geq 10$ crossed corners.
+Central deliveries into the penalty area (IN\_PA3: CTS~= 0.033; OUT\_GA2:
+CTS~= 0.032; IN\_GA2: CTS~= 0.029) are substantially more threatening than
+near-post and far-post deliveries to the same depth band
+(IN\_GA1: CTS~= 0.015; OUT\_GA1: CTS~= 0.004).
+Deliveries to the \texttt{FRONT} zone (in front of the six-yard box) and to
+the \texttt{EDGE} zone are consistently below average (CTS~$< 0.005$).
+In-swing corners (CTS~= 0.018) marginally outperform out-swing corners
+(CTS~= 0.017).
+
+\subsubsection{Ball flight.}
+Medium-height deliveries ($3$--$8$~m peak height; CTS~= 0.021) generate
+more threat than floated deliveries ($>8$~m; CTS~= 0.009) or ground-level
+deliveries ($<0.5$~m; CTS~= 0.001). Low deliveries ($0.5$--$3$~m;
+CTS~= 0.013) occupy an intermediate position. These patterns suggest that
+flatter, more direct deliveries are harder to defend than high, hanging
+crosses in the Eerste Divisie context.
+
+\subsubsection{Attacker movement (running lines).}
+Running line data are available for 334 of the 1,401 crossed corners
+(corners with full tracking coverage). Among corners with a dominant run
+direction, central-dominated setups (\texttt{n\_central} highest;
+CTS~= 0.034, $n = 13$) and second-phase setups (CTS~= 0.024, $n = 158$)
+outperform corners dominated by static positioning (CTS~= 0.013, $n = 125$)
+and near-post runs (CTS~= 0.003, $n = 27$). The near-post finding is
+noteworthy: near-post runners draw defenders to the near post and may
+\textit{reduce} the attacking threat, consistent with the role of these
+runners as blockers rather than primary receivers. The majority of corners
+($n = 1{,}067$) lack tracking coverage (\texttt{UNKNOWN}); this limits the
+power of running line comparisons.
+
+\subsubsection{Attacker tactical roles (86 labelled corners).}
+For the manually labelled subset, the presence of blockers is associated
+with divergent outcomes: corners featuring a \texttt{BLOCK\_GK} player
+(screens the goalkeeper; $n = 14$) show higher mean CTS (0.019) than those
+without (0.014), consistent with the blocker creating a direct shooting
+lane. By contrast, corners with a \texttt{BLOCK\_DEF} player (blocks a
+specific outfield defender; $n = 11$) show lower mean CTS (0.003 vs.\
+0.016), possibly reflecting that these corners are executed under conditions
+where the defence is concentrated. Corners featuring three decoy runners
+(\texttt{DECOY}~= 3; $n = 15$) achieve the highest mean CTS (0.036),
+suggesting that systematic decoy movement creates exploitable defensive gaps.
+
+\subsubsection{Defensive strategy.}
+Among the 86 labelled corners, corners defended with a predominantly zonal
+structure ($n = 37$; CTS~= 0.020) appear more threatening than those with a
+predominantly man-marking structure ($n = 6$; CTS~= 0.000). This pattern
+should be interpreted cautiously: the man-marking sample is small, and
+zonal defences are likely deployed by teams facing higher-quality opponents,
+introducing a selection confound. The primary SQ3 regression analysis
+(Section~\ref{sec:sq3_analysis}) controls for this by operating on the full
+1,401-corner dataset with defensive strategy labels from the automated
+classifier.
+
+\section{SQ4: Individual Player Qualities and Corner Success}
+\label{sec:sq4}
+
+\subsection{Corner Taker Quality}
+\label{sec:sq4_taker}
+
+The quality of the corner taker is characterised using three metrics.
+
+\subsubsection{Delivery accuracy.}
+For the 51~corners in the manually labelled set where the intended delivery zone
+is known, delivery accuracy is defined as the proportion of corners landing in
+the intended depth band (GA vs.\ PA vs.\ PE or deeper). This is reported as a
+taker-specific statistic for takers with $\geq 5$~labelled deliveries.
+
+\subsubsection{Delivery quality score (CTS-based).}
+Taker quality is quantified as the \textit{Corner Threat Score} computed at the
+taker level \citep{Lamberts2023}: the CTS formula (Equation~\ref{eq:cts}) is
+applied to the taker's mean xA and mean sequence xG aggregated across all their
+corners in the dataset:
+\begin{equation}
+  \mathrm{TakerCTS} = \frac{2 \cdot \overline{\mathrm{xG}}_{\mathrm{taker}}
+                              \cdot \overline{\mathrm{xA}}_{\mathrm{taker}}}
+                           {\overline{\mathrm{xG}}_{\mathrm{taker}}
+                              + \overline{\mathrm{xA}}_{\mathrm{taker}}},
+  \label{eq:taker_cts}
+\end{equation}
+where $\overline{\mathrm{xA}}_{\mathrm{taker}}$ is the taker's mean SciSports
+expected assist per delivery and $\overline{\mathrm{xG}}_{\mathrm{taker}}$ is
+the mean maximum shot xG in their corner sequences. TakerCTS integrates both
+delivery quality and the threat generated by the taker's corners.
+Only takers with $\geq 10$~corners in the dataset are assigned a score.
+
+\subsubsection{Delivery consistency.}
+The standard deviation of ball peak height ($\sigma_{z}$) across a taker's corners
+is computed as a measure of trajectory consistency. Lower $\sigma_{z}$ indicates
+greater repeatability of the delivery arc. Flight category entropy is reported
+as a complementary measure.
+
+\subsection{Target Player Quality}
+\label{sec:sq4_target}
+
+Where a shot or header immediately follows the corner delivery and the initiating
+player can be identified from event data, that player is defined as the
+\textit{aerial target}. Two quality indicators are extracted:
+
+\begin{enumerate}
+  \item \textbf{Aerial duel win rate}: the proportion of aerial duels won by the
+        player across all match events (not limited to corners), computed from the
+        full event dataset;
+  \item \textbf{Physical attributes}: player height (metres), if available in the
+        SciSports player metadata. Where not available, this metric is omitted and
+        flagged as a data gap.
+\end{enumerate}
+
+\subsection{Controlling for Player Quality in SQ3}
+\label{sec:sq4_control}
+
+To isolate the effect of tactical setup (delivery type, defensive strategy) from
+individual player contributions, the logistic regression in
+Equation~\ref{eq:logit} is re-estimated after adding taker CTS and (where
+available) target player height as additional covariates. A decrease in the
+coefficients of tactical predictors after inclusion of player quality variables
+would indicate that part of the observed tactical effectiveness is attributable
+to individual quality rather than the tactic itself. This analysis addresses the
+primary research question of SQ4.
+
+\section{SQ5: Tactical Preparation Tool}
+\label{sec:sq5}
+
+\subsection{Overview}
+\label{sec:sq5_overview}
+
+SQ5 integrates the outputs of SQ1–SQ4 into a practical preparation tool aimed at
+supporting coaches in designing corner kick routines against specific opponents.
+The tool consists of two components: (A) an opponent scouting report and
+(B) a positional response model, referred to informally as the
+\textit{magnet board}.
+
+\subsection{Component A: Opponent Scouting Report}
+\label{sec:sq5_scouting}
+
+For a given upcoming opponent, the following steps are executed:
+
+\begin{enumerate}
+  \item \textbf{Defensive profile}: all corners in which the opponent appeared
+        as the defending team are identified and their defensive strategy types
+        (from SQ1) are tabulated. The modal defensive strategy constitutes the
+        \textit{typical defensive setup}.
+  \item \textbf{Effectiveness lookup}: the SQ3 effectiveness matrix is queried
+        for the opponent's typical defensive strategy. Offensive dimensions
+        with above-average CTS against this strategy are highlighted as
+        recommended attacking approaches.
+  \item \textbf{Player qualities}: the opponent's man-markers (from SQ1) are
+        identified, along with their aerial duel win rates (from SQ4), to
+        estimate the risk of man-marking assignments.
+\end{enumerate}
+
+The scouting report is formatted as a standardised one-page summary
+containing the opponent's defensive strategy distribution, the three most
+effective offensive approaches (by mean xG), and a schematic of the opponent's
+typical defensive organisation.
+
+\subsection{Component B: Positional Response Model (Magnet Board)}
+\label{sec:sq5_magnet}
+
+The magnet board addresses the question: given a planned attacker configuration,
+what defensive positioning is the opposing team likely to adopt, and where do
+structural weaknesses appear?
+
+\subsubsection{Representation.}
+Each corner is represented by two spatial configurations, extracted from tracking
+data at the delivery moment ($t = 0$):
+\begin{itemize}
+  \item \textbf{Attacker configuration}: the $(x, y)$ coordinates of all
+        attacking outfield players (excluding the corner taker), recorded at
+        $t - 3$~s (pre-delivery setup);
+  \item \textbf{Defender configuration}: the $(x, y)$ coordinates of all
+        defending outfield players at $t = 0$.
+\end{itemize}
+
+\subsubsection{Zonal defender positions.}
+For teams with $\geq 10$~historical corners as the defending team, the mean
+position of each defender classified as \texttt{ZONAL} is computed across all
+their corners. This yields a \textit{zonal template}: a set of mean positions
+for each zonal slot (typically 4–6 players), visualised as labelled markers
+on a 2D pitch diagram. The zonal template is relatively stable across corners
+for a given team, reflecting deliberate set-piece preparation; the standard
+deviation of each position is reported to quantify consistency.
+
+\subsubsection{Man-marker response.}
+For defenders classified as \texttt{MAN}, the model estimates where a specific
+man-marker is likely to position given an attacker placed at a given location.
+Because man-markers track their assigned attacker, their expected position at
+delivery is approximated by the attacker's delivery-moment position plus a
+small offset vector derived from the mean positional lag observed in the
+historical data. Formally, let $\mathbf{a}$ denote the planned attacker position
+and $\hat{\boldsymbol{\delta}}$ denote the mean tracking offset:
+\begin{equation}
+  \hat{\mathbf{d}} = \mathbf{a} + \hat{\boldsymbol{\delta}},
+  \label{eq:man_marker}
+\end{equation}
+where $\hat{\boldsymbol{\delta}}$ is estimated from the 95~man-marking pairs in
+the manually labelled dataset. This offset captures the fact that man-markers
+typically position slightly between their assigned attacker and the goal.
+
+\subsubsection{Gap identification.}
+Given a planned attacker configuration and the predicted defensive response
+(zonal positions + man-marker responses), the uncovered pitch area is estimated
+by computing, for each of the 12 central zones (GA1–PC3), the minimum distance
+from any defensive player to the zone centroid. Zones with minimum distance
+exceeding a threshold (calibrated on the labelled dataset) are flagged as
+\textit{potentially open}, providing actionable guidance on which zone to target
+with the delivery.
+
+\subsubsection{Visualisation and interpretation.}
+The magnet board is rendered as a standard 2D pitch diagram
+(attacking half only) showing:
+\begin{itemize}
+  \item Zonal defenders as circles labelled with their role, at their expected
+        mean position ($\pm$ one standard deviation ellipse);
+  \item Man-markers as arrows from the planned attacker position to the
+        predicted defender position;
+  \item Potentially open zones highlighted in the target-zone grid.
+\end{itemize}
+The output is designed to be immediately legible to coaching staff without
+statistical expertise. No machine learning model is used in the magnet board;
+the tool is entirely rule-based and transparent.
+
+\subsubsection{Limitation.}
+The magnet board is trained on aggregate historical data and cannot account for
+within-team variation or tactical adjustments in response to specific attacker
+identities that the opposing coach has pre-planned. It should be used as a
+probabilistic starting point for tactical discussion rather than a deterministic
+prediction.
+
+\section{Validation Strategy}
+\label{sec:validation}
+
+Model validation is summarised in Table~\ref{tab:validation}.
+
+\begin{table}[h]
+  \centering
+  \caption{Validation approach for each analytical component.}
+  \label{tab:validation}
+  \begin{tabular}{p{4cm}p{4cm}p{4.5cm}}
+    \toprule
+    \textbf{Component} & \textbf{Ground truth} & \textbf{Validation method} \\
+    \midrule
+    Defender role model & 509 labelled defender rows & Leave-one-match-out CV \\
+    Running line classifier & 858 labelled player rows & Leave-one-corner-out CV \\
+    Attacker role classifier & 389 labelled player rows & Leave-one-corner-out CV \\
+    Delivery swing & 51 labelled corners & Agreement rate \\
+    Delivery zone & 51 labelled corners & Agreement rate \\
+    Ball flight category & Manual check on 86 corners & Distribution validation \\
+    Magnet board — zonal positions & 86 labelled corners & Mean position error (metres) \\
+    Magnet board — man-marker offset & 95 labelled man-marking pairs & Mean offset error (metres) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Software and Reproducibility}
+\label{sec:software}
+
+All analyses were implemented in Python~3.10 using
+\texttt{pandas}~\citep{pandas2020},
+\texttt{numpy}~\citep{numpy2020},
+\texttt{scikit-learn}~\citep{sklearn2011},
+and \texttt{scipy}~\citep{scipy2020}.
+Pitch visualisations were produced with \texttt{matplotlib}~\citep{matplotlib2007}.
+Data extraction scripts, model training pipelines, and the magnet board
+visualisation tool are version-controlled and available in the project repository.
+All random seeds are fixed at 42 for reproducibility.
+
+% ============================================================
+%  BIBLIOGRAPHY ENTRIES (add to your .bib file)
+%  \bibitem{Casal2015}
+%    Casal, C.~A., Maneiro, R., Arill, T., Losada, J.~L., \& Ardá, A. (2015).
+%    Analysis of corner kick success in elite football. \textit{International
+%    Journal of Performance Analysis in Sport}, 15(2), 430--451.
+%
+%  \bibitem{Plakias2025}
+%    Plakias, S., Armatas, V., \& Giakas, G. (2025). Technical–tactical analysis
+%    of corner kicks in male soccer: A systematic review. \textit{Applied
+%    Sciences}, 15(9), 4984.
+%
+%  \bibitem{Fernandez2019}
+%    Fernández, J., \& Bornn, L. (2019). Wide open spaces: A statistical
+%    technique for measuring space creation in professional soccer.
+%    \textit{MIT Sloan Sports Analytics Conference}.
+%
+%  \bibitem{Lamberts2023}
+%    Lamberts, M. (2023). Corner Threat Score: Measuring the threat a player
+%    generates from corners. Medium / Analytics FC.
+%
+%  \bibitem{Rathke2017}
+%    Rathke, A. (2017). An examination of expected goals and shot quality from a
+%    soccer perspective. \textit{International Journal of Computer Science in
+%    Sport}, 16(2), 76--96.
+%
+%  \bibitem{pandas2020} McKinney, W. (2010). Data Structures for Statistical
+%    Computing in Python. \textit{Proceedings of the 9th Python in Science
+%    Conference}.
+%  \bibitem{numpy2020}  Harris, C.~R. et al. (2020). Array programming with
+%    NumPy. \textit{Nature}, 585, 357--362.
+%  \bibitem{sklearn2011} Pedregosa, F. et al. (2011). Scikit-learn: Machine
+%    Learning in Python. \textit{JMLR}, 12, 2825--2830.
+%  \bibitem{scipy2020}  Virtanen, P. et al. (2020). SciPy 1.0. \textit{Nature
+%    Methods}, 17, 261--272.
+%  \bibitem{matplotlib2007} Hunter, J.~D. (2007). Matplotlib: A 2D graphics
+%    environment. \textit{Computing in Science \& Engineering}, 9(3), 90--95.
+% ============================================================

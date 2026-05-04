@@ -1,0 +1,141 @@
+\documentclass[12pt]{report}  % Changed from {article} to {report} to support \chapter{}
+
+% ── Encoding (only once) ────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% ── Language ────────────────────────────────────────────────────────────────
+\usepackage[english]{babel}
+
+% ── Page layout ─────────────────────────────────────────────────────────────
+\usepackage[
+  left=25mm,
+  right=25mm,
+  top=25mm,
+  bottom=25mm
+]{geometry}
+\pagestyle{plain}
+
+% ── Mathematics ─────────────────────────────────────────────────────────────
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+
+% ── Graphics & figures ──────────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+
+% ── Tables ──────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{tabu}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{colortbl}
+\usepackage{lscape}
+
+% ── Lists & spacing ─────────────────────────────────────────────────────────
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+% ── Colour ──────────────────────────────────────────────────────────────────
+\usepackage{xcolor}
+\usepackage{color}
+\definecolor{mygreen}{RGB}{28,172,0}
+\definecolor{mylilas}{RGB}{170,55,241}
+
+% ── Typography & symbols ────────────────────────────────────────────────────
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{eurosym}
+\usepackage{soul}
+\usepackage{lipsum}
+
+% ── Code listings ───────────────────────────────────────────────────────────
+\usepackage{listings}
+\usepackage{fancyvrb}
+
+% ── Section heading formatting ──────────────────────────────────────────────
+\usepackage[compact]{titlesec}
+
+% ── TOC / headers ───────────────────────────────────────────────────────────
+\usepackage{tocloft}
+\usepackage{titlepic}
+\usepackage[nottoc]{tocbibind}
+
+% ── Misc utility ────────────────────────────────────────────────────────────
+\usepackage{filecontents}
+\usepackage{subfiles}
+\usepackage[toc,page]{appendix}
+\usepackage[colorinlistoftodos]{todonotes}
+
+% ── Bibliography ─────────────────────────────────────────────────────────────
+% Switched from numeric to authoryear so that \citep{} and \citeyearpar{}
+% (used throughout the introduction) render correctly.
+% If you prefer numbered citations, change style=authoryear to style=numeric
+% and replace every \citep{} in the intro with \cite{}.
+\usepackage[backend=biber, style=authoryear, natbib=true]{biblatex}
+\addbibresource{references.bib}
+
+% ── Hyperlinks (load last) ───────────────────────────────────────────────────
+\usepackage[hidelinks]{hyperref}  % hidelinks removes coloured boxes around links
+
+% ── Custom column types ──────────────────────────────────────────────────────
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcommand{\sectionline}{\arrayrulecolor{black}\midrule[1.5pt]}
+
+% ── Listings style ───────────────────────────────────────────────────────────
+\lstset{
+  language=Matlab,
+  basicstyle=\scriptsize,
+  breaklines=true,
+  morekeywords={matlab2tikz},
+  keywordstyle=\color{blue},
+  morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+  identifierstyle=\color{black},
+  stringstyle=\color{mylilas},
+  commentstyle=\color{mygreen},
+  showstringspaces=false,
+  numbers=left,
+  numberstyle={\small \color{black}},
+  numbersep=9pt,
+  emph=[1]{for,end,break}, emphstyle=[1]\color{red},
+}
+
+% ════════════════════════════════════════════════════════════════════════════
+\begin{document}
+% ════════════════════════════════════════════════════════════════════════════
+
+\input{General/Titlepage.tex}
+\newpage
+
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+% ── Chapters ────────────────────────────────────────────────────────────────
+\input{Chapters/Introduction.tex}   % <-- your new introduction file
+\clearpage
+
+\input{Chapters/Ass2.tex}           % <-- your existing methods/other chapters
+\clearpage
+
+% ── Bibliography ─────────────────────────────────────────────────────────────
+\printbibliography
+\setlength{\bibhang}{15pt}
+\clearpage
+
+% ── Appendix ─────────────────────────────────────────────────────────────────
+\input{Chapters/appendix}
+
+\end{document}

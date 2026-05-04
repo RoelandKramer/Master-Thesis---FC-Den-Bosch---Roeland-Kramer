@@ -1,0 +1,742 @@
+% ============================================================
+%  CHAPTER 1 — INTRODUCTION
+%  Sections: 1.1 Introduction | 1.2 Problem Statement | 1.3 Academic Context
+% ============================================================
+
+\chapter{Introduction}
+\label{chap:introduction}
+
+% ============================================================
+\section{The Relevance of Corner Kicks in Modern Football}
+\label{sec:intro_relevance}
+% ============================================================
+
+Modern professional football is a sport of marginal gains. Across the top five
+European leagues, the average match is decided by a single goal, and any
+repeatable, high-frequency situation that shifts the probability of scoring ---
+even marginally --- carries strategic value that far exceeds its apparent
+simplicity. Corner kicks are among the clearest expressions of this logic. They
+occur, on average, 5.5 times per team per match \citep{Casal2015}, they restart
+play in the most dangerous corridor on the pitch, and --- unlike almost any
+phase of open play --- they permit prior rehearsal of exact player positions and
+movement sequences. A professional side will typically execute more than two
+hundred corners across a thirty-four match season: two hundred scripted
+opportunities to attack, from a fixed point, in front of the opponent's goal.
+
+Yet the raw conversion rate is strikingly low. Only about 2--3\,\% of corners
+across elite competitions result directly in a goal \citep{Casal2015,
+ShawGopaladesikan2020}. This tension between high frequency and low conversion
+has long invited the question of whether corners are genuinely worth investing
+in, or whether they are, as Power et al.\ famously tested, a tactical dead end
+\citep{Power2018}. The answer that data have consistently returned is the former.
+The per-possession probability of scoring from a corner is approximately 1.8\,\%,
+compared with only 1.1\,\% for an open-play possession --- a 64\,\% relative
+increase \citep{Power2018}. More strikingly, when a goal is scored from a corner,
+it is decisive --- winning or drawing the match --- in roughly three quarters of
+cases \citep{Casal2015}. And the aggregate weight of corner goals in the overall
+goal distribution has grown substantially over the past decade: in the English
+Premier League during the 2023/24 season, corners directly contributed to
+approximately 16\,\% of all non-penalty goals, continuing a trend that has
+accelerated in recent years as clubs have invested more deliberately in set-piece
+preparation.
+
+The realisation that corners are a systematically underexploited source of goals
+has driven a structural change in professional club football. Dedicated
+\emph{set-piece coaches} --- specialists whose sole responsibility is the design,
+preparation, and analysis of dead-ball situations --- have become near-universal
+at the elite level. The career trajectory of Nicolas Jover, who began as a video
+analyst at Montpellier, became set-piece coach at Brentford, then Manchester
+City, and eventually Arsenal, illustrates the institutionalisation of the role.
+Under Jover's guidance at Arsenal, the club scored twenty set-piece goals in the
+2023/24 Premier League season, the most in the division, and broke or equalled
+multiple Premier League records for corner effectiveness. Italian specialist
+Gianni Vio, who introduced data-driven corner routines at Brentford as early as
+2015/16, saw the club's corner-to-goal conversion rate improve by 80\,\% in a
+single season. FC Midtjylland, another data-forward club operating under Matthew
+Benham's analytical approach, scored 25 set-piece goals in one Danish Superliga
+campaign --- fourteen more than the next best side.
+
+These are not isolated success stories. They reflect a general recognition that
+set pieces, and corners in particular, constitute a \emph{market inefficiency}:
+an area of the game where the expected return on investment in time, analysis,
+and tactical preparation substantially exceeds the return on equivalent
+investment in open-play development \citep{Power2018}. Paul Power, co-author of
+the 2018 Sloan set-piece paper, has argued publicly that a high-quality set-piece
+programme is, in goal-expectation terms, roughly equivalent to spending
+\pounds80 million on a world-class striker. Corner kicks, in short, matter ---
+and the question of how to exploit them more effectively, and how to prepare
+against specific opponents doing the same, is one of the most practically
+consequential open problems in applied football analytics.
+
+% ============================================================
+\section{Problem Statement}
+\label{sec:problem_statement}
+% ============================================================
+
+\subsection{The Preparation Gap}
+\label{sec:prob_preparation}
+
+Despite the growing recognition of corners as a strategic asset and the
+proliferation of specialist coaching roles, the \emph{preparation process} for
+corners has not evolved at the same pace as the ambition surrounding them.
+The dominant workflow in professional clubs today remains notational video
+analysis: an analyst watches the opposition's previous matches, classifies each
+of their corners by hand --- the delivery type, where the ball landed, how the
+defending team organised itself, which attackers ran where --- and synthesises
+these observations into a pre-match scouting report. Wright et al.\ (2013)
+estimated that performance analysts spend, on average, approximately six hours
+per match preparing opposition analysis; set-piece review accounts for a
+substantial portion of this time. Yet Gianni Vio, speaking from two decades of
+specialised set-piece practice, has observed that despite corners and free kicks
+accounting for approximately 30\,\% of all goals at elite level, clubs typically
+dedicate no more than ten minutes per week of training time to set-piece work.
+The gap between the \emph{strategic importance} of the set piece and the
+\emph{analytical bandwidth} available to exploit that importance is, by
+practitioners' own accounts, enormous.
+
+This gap has a structural cause that goes beyond the number of hours available.
+Manual notational analysis of corners is not only slow; it is also
+fundamentally limited in what it can observe. A human analyst watching a video
+frame can categorise whether a defender \emph{appears} to be following an
+attacker or holding a zone, but cannot precisely quantify the distance between
+those two players at each moment leading up to delivery, the velocity with which
+the defender is tracking, the degree of synchronisation between a defender's
+movement and an attacker's run, or the spatial coverage gaps that result from
+the collective configuration of all ten outfield defenders. These are
+\emph{continuous, spatiotemporal} properties of the scene, and they cannot be
+adequately captured in the discrete, categorical labels that notational analysis
+produces. The consequence is that much of the tactical information embedded in a
+corner --- information that is, in principle, available in the data --- is lost
+in the process of manual observation.
+
+\subsection{The Scalability Problem}
+\label{sec:prob_scalability}
+
+The problem is compounded by scale. A team preparing for a specific opponent
+will typically have access to no more than ten to fifteen of that opponent's
+most recent matches, yielding perhaps sixty to ninety corners to work with.
+Because short corners, anomalous situations, and in-match tactical adjustments
+reduce the homogeneous sample further, an analyst may have as few as forty
+``standard'' defensive corners from a given opponent to draw conclusions from.
+This is a statistically small sample from which to infer stable strategic
+tendencies, particularly for the kind of conditional analysis that coaches need:
+not simply ``how does this opponent defend corners?'' but ``how does this
+opponent defend corners of the \emph{type we tend to take}, with our
+\emph{specific personnel}?'' The manual pipeline, which is already slow for
+single-team aggregate analysis, is wholly unsuited to the conditional,
+opponent-specific, player-specific questions that coaches actually ask.
+
+Tracking data offers, in principle, a path out of this bottleneck. Where a club
+has access to a league-wide tracking database --- as is increasingly the case
+through commercial data providers --- thousands of corners across a full season
+of play can be processed simultaneously, yielding far larger samples per
+analytical category, far more stable estimates of tendencies, and far richer
+conditional analyses. The computation is also consistent: unlike a human analyst
+who may code a given corner differently depending on the viewing angle, the
+fatigue level of the session, or the ambiguity of a specific player's movement,
+an algorithmic pipeline applied to the same tracking data will always produce
+the same output. This consistency is particularly important when the goal is not
+just to describe a single opponent's behaviour but to build a general model of
+which attacking tactics work against which defensive configurations.
+
+\subsection{The Two-Sided Blindspot}
+\label{sec:prob_blindspot}
+
+The academic and applied analytics literature has begun to engage with this
+problem, but has done so in a piecemeal way. The most important prior work ---
+Shaw and Gopaladesikan \citeyearpar{ShawGopaladesikan2020}, Bauer, Anzer, and
+Smith \citeyearpar{Bauer2022}, and Wang et al.\ \citeyearpar{Wang2024} --- has
+addressed either the defensive side (classifying how opponents organise
+themselves to defend corners) or the offensive side (identifying what attacking
+routines teams use and modelling who is likely to receive the ball) in
+isolation. No published study has systematically combined a data-derived
+characterisation of both the attacking routine and the defensive structure into
+a single framework, and then asked the conditional question that motivates
+set-piece coaching in the first place: \emph{which attacking configurations are
+most effective against which defensive configurations?}
+
+This two-sided blindspot has a direct practical consequence. A coach who knows
+that a specific opponent defends corners predominantly with man-markers still
+cannot, from that knowledge alone, determine which of his own attacking routines
+is most likely to exploit that structure --- because the effectiveness of an
+attacking routine against a man-marking defence depends on details (blocking
+movement, run timing, delivery angle) that are themselves uncharacterised in
+quantitative terms. Conversely, a coach who knows that inswinging deliveries
+to the central penalty area tend to generate more xG on average cannot determine
+whether that general finding applies when the opponent in question is defending
+with a particular hybrid structure that systematically overloads that zone.
+The missing link is an integrated, data-derived model that bridges the offensive
+and defensive characterisations and operates at the level of specificity that
+coaching decisions require.
+
+\subsection{The Individual Quality Dimension}
+\label{sec:prob_player}
+
+A further limitation of the existing literature concerns the treatment of
+individual players. Corner effectiveness is determined not only by which tactical
+setup is deployed and against which defensive structure, but by \emph{who}
+executes it. The quality of the corner taker --- measured by delivery precision,
+trajectory consistency, and the xA generated by his deliveries --- determines
+whether the ball reaches the intended zone at all. The aerial ability of the
+target player --- measured by aerial duel win rate, height, timing, and opponent-
+adjusted quality metrics --- determines whether a delivery in the right zone
+produces a shot. These individual contributions are not separable from the
+tactical analysis; a routine that performs well on average may perform very
+differently when executed by a technically limited taker, or when the primary
+aerial target is matched against a dominant defender. Yet the existing
+quantitative literature on corners treats players as interchangeable within their
+tactical roles, and does not model the interaction between player quality and
+tactical setup. This is a gap that becomes increasingly important as the analysis
+moves from the population level (what works on average?) to the decision level
+(what should \emph{this} team do, with \emph{these} players, against
+\emph{this} opponent?).
+
+\subsection{Research Questions}
+\label{sec:research_questions}
+
+The preceding problem analysis motivates the central research question of this
+thesis:
+
+\begin{quote}
+  \textbf{Main Research Question:} \emph{To what extent can tracking and event
+  data be used to tailor attacking corner tactics to specific defensive
+  structures, in order to maximise corner success?}
+\end{quote}
+
+This question is operationalised through five sequential sub-questions, each
+of which corresponds to one analytical layer in the methodology:
+
+\begin{description}
+  \item[SQ1] \emph{To what extent can individual defensive roles be automatically
+    classified from tracking data, and can these classifications be aggregated
+    to characterise a team's overall defensive corner strategy?}
+
+  \item[SQ2] \emph{Can attacking corner patterns be automatically classified from
+    tracking and event data, and what taxonomy of offensive tactics emerges from
+    this classification?}
+
+  \item[SQ3] \emph{Which attacking corner strategies are most effective against
+    which defensive structures?}
+
+  \item[SQ4] \emph{Which individual player qualities and attributes influence the
+    success of corners?}
+
+  \item[SQ5] \emph{How can these combined insights be used to improve preparation
+    for corners against specific opponents?}
+\end{description}
+
+SQ1 and SQ2 establish the two descriptive vocabularies --- one for defensive
+setups, one for attacking routines --- that make SQ3 possible. SQ3 is the
+central analytical contribution: the conditional effectiveness analysis that
+links the two sides of the corner. SQ4 enriches the SQ3 findings by
+disentangling tactical from individual effects. SQ5 synthesises the outputs
+of SQ1--SQ4 into a practical preparation tool for coaching staff. The analytical
+pipeline is described in full in Chapter~\ref{sec:methods}.
+
+% ============================================================
+\section{Academic Context}
+\label{sec:academic_context}
+% ============================================================
+
+The research questions positioned above sit at the intersection of three
+established bodies of academic and applied literature: (i) the notational
+performance-analysis tradition on corner kicks, (ii) the coaching-science
+literature on defensive and offensive set-piece systems, and (iii) the
+spatiotemporal analytics literature that applies tracking data and machine
+learning to football. A fourth, smaller body of work on individual player
+attributes and aerial duel performance is also relevant, particularly for SQ4.
+The review below works through each tradition in turn before identifying the
+specific gap that this thesis addresses.
+
+% ------------------------------------------------------------
+\subsection{Notational Performance Analysis of Corner Kicks}
+\label{sec:lit_notational}
+% ------------------------------------------------------------
+
+The largest body of academic work on corner kicks belongs to the notational
+performance-analysis tradition. Studies in this tradition manually code corners
+from video using structured observation instruments --- typically purpose-built
+software platforms such as LINCE, Nacsport, or Wyscout Scout --- and examine
+statistical relationships between coded categorical variables and outcomes such
+as shots, shots on target, or goals. The observational units are human-assigned
+labels: the side from which the corner is taken, the kicker's foot, the delivery
+trajectory (inswing, outswing, or straight), the target zone in the penalty
+area, the number of attackers and defenders in the box, the defensive system
+employed, and the match context \citep{Sarmento2014, Sarmento2025}.
+
+\subsubsection{Frequency, Conversion, and Match Impact}
+
+Casal and colleagues \citeyearpar{Casal2015} provide the most frequently cited
+quantitative baseline. Analysing 1{,}139 corners from 124 matches at the 2010
+FIFA World Cup, UEFA Euro 2012, and the 2010/11 UEFA Champions League, they
+reported a direct goal-per-corner rate of 2.2\,\%. Crucially, they found that
+76\,\% of those goals were directly responsible for the scoring team winning or
+drawing the match in which they were scored --- a figure that underlines the
+match-decisive weight of corner conversions. Their multivariate analysis
+identified three variables as significantly associated with scoring: time of
+match ($p = 0.04$), number of intervening attackers ($p = 0.001$), and the
+degree of offensive organisation ($p = 0.02$). Later work by
+Fern\'andez-Herm\'ogenes, Camerino, and Hileno \citeyearpar{FernandezH2021},
+working on 2{,}029 corners from the Spanish La Liga and Segunda Divisi\'on,
+found that only 29.1\,\% of corners generated a shot attempt --- consistent
+with the earlier range of 17--24\,\% shot-per-corner rates reported across
+multiple studies and competitions \citep{Borras2005, SainzdeBaranda2012,
+SanchezFlores2012}. Corner kicks occur roughly ten times per match at elite
+level \citep{FernandezH2021}, providing a large base of observations for
+statistical analysis while also highlighting the low per-event conversion
+rate that makes each marginal improvement in targeting so valuable.
+
+\subsubsection{Delivery Characteristics and Target Zones}
+
+A parallel strand of the literature has focused on \emph{delivery
+characteristics}. Pulling \citeyearpar{Pulling2015} and Pulling, Robins, and
+Rixon \citeyearpar{Pulling2013} examined long corners in the English Premier
+League and demonstrated that deliveries into the goal area and the ``critical
+area'' between six and twelve yards from the goal line generate
+disproportionately many shot attempts. This finding directy anticipates the
+zone system deployed in the present thesis (Section~\ref{sec:data}), which
+subdivides the penalty area into depth bands --- Goal Area (GA), Penalty Area
+(PA), Penalty Edge (PE), and Penalty Curve (PC) --- and lateral columns. A
+recent meta-analysis \citep{JCSS2025} synthesised evidence from 21 studies on
+inswinging versus outswinging deliveries and found that outswing corners
+generate marginally more final attempts in domestic leagues, attributing the
+effect to the ball moving \emph{towards} arriving attackers rather than away
+from them. Stafylidis and colleagues \citeyearpar{Stafylidis2022, Stafylidis2023}
+reached a similar conclusion but added the qualification that delivery-type
+advantage is attacker-dependent: inswing favours late-arriving runners, outswing
+favours stationary target players. This interaction between delivery type and
+attacker positioning motivates the joint delivery-type / movement-profile
+characterisation in SQ2.
+
+The choice of delivery height --- whether the ball arrives flat and driven,
+at a medium arc, or as a high-looping floated cross --- has received less
+academic attention despite its practical importance. Liu and colleagues
+\citeyearpar{Liu2025}, analysing 624 corner-kick goals across the Premier
+League, La Liga, and the Danish Superliga alongside 545 World Cup corners,
+found significant league-level differences in shot-zone distributions and
+inswing-goal proportions, and identified home advantage, inswing delivery,
+non-grouped attacking setups, and non-block defensive formations as factors
+associated with scoring. Their work also illustrates the methodological
+limitation of operating on goal-only samples: by conditioning on goals rather
+than all corners, such studies systematically overestimate the effectiveness of
+configurations that happened to produce goals while underestimating those that
+produced good-but-unconverted chances. The present thesis avoids this by using
+the Corner Threat Score (CTS), which integrates delivery quality (xA) with shot
+quality (xG) across \emph{all} corners, including those without a subsequent
+shot \citep{Lamberts2023}.
+
+\subsubsection{Context, Match Status, and Short Corners}
+
+The notational literature has also catalogued how \emph{context} shapes corner
+tactics. Casal, Losada, Maneiro, and Ard\'a \citeyearpar{Casal2017} used CHAID
+decision trees on 902 tournament corners to show that match status systematically
+alters tactical choices: teams trailing in the final thirty minutes concentrate
+attackers closer to the goal and accept greater counter-attack risk, whereas
+teams that are level behave more conservatively. De Baranda and
+L\'opez-Riquelme \citeyearpar{DeBaranda2012} documented similar effects in the
+2006 World Cup. Strafford, Smith, North, and Stone \citeyearpar{Strafford2019},
+comparing top-six and bottom-six Premier League sides in 2015/16, reported that
+variety of routines did not distinguish the two groups but that execution
+consistency did --- an observation that motivates characterising teams by their
+\emph{distribution} over routine types rather than by the mere presence of any
+given routine. Page and Robins \citeyearpar{PageRobins2012} conducted a
+single-club case study in League One and documented substantial within-season
+variation in corner tactics, suggesting that clubs actively adjust routines to
+opposition, a hypothesis that the per-opponent analysis in SQ5 of this thesis
+is designed to test quantitatively.
+
+Short corners --- in which the ball is played to a nearby teammate rather than
+crossed directly --- account for roughly 18\,\% of all corner kicks
+\citep{Casal2015}, a proportion consistent with the 26\,\% (492 of 1{,}893)
+observed in the Dutch Eerste Divisie dataset used in this thesis. Although their
+direct goal-conversion rate is lower than for crossed corners, short corners can
+serve strategic functions: drawing defenders out of the penalty area before a
+subsequent cross, exploiting a numerically weak near-side guard, or recycling
+possession when the set-piece structure is unfavourable. Existing academic
+literature has characterised short corners primarily at the aggregate level
+\citep{Sarmento2025}; the present thesis develops a detailed pass-count and
+outcome-based taxonomy (Section~\ref{sec:sq2_short}) that permits more granular
+comparison.
+
+\subsubsection{Methodological Limitations of the Notational Tradition}
+
+Two systematic reviews published in 2025 \citep{Sarmento2025, MDPI2025} have
+identified persistent methodological limitations in the notational corner-kick
+literature. First, \emph{zone inconsistency}: different studies divide the
+penalty area into incompatible spatial grids, making cross-study synthesis
+unreliable. Second, \emph{outcome operationalisation}: ``corner success'' is
+variously defined as a shot, a shot on target, a goal, or the more recent
+expected-goals metric, with no consensus standard. Third, \emph{contextual
+underdetermination}: most studies report marginal frequencies across categories
+without modelling interactions between delivery type, defensive structure, match
+status, and player identity. Fourth, and most consequentially for the present
+thesis: notational analysis operates on \emph{discrete, human-assigned labels}
+and therefore cannot access the continuous spatiotemporal information --- player
+velocities, mutual distances, movement correlations --- that tracking data
+make available. Manual labels compress rich spatial configurations into single
+categorical cells, introducing inter-observer variability and losing the very
+information that distinguishes a well-executed zonal block from a poorly
+coordinated one.
+
+% ------------------------------------------------------------
+\subsection{Defensive and Offensive Set-Piece Systems}
+\label{sec:lit_coaching}
+% ------------------------------------------------------------
+
+Parallel to the notational academic literature, a body of coaching-science
+work focuses on the \emph{systems} teams use to organise themselves at corners.
+This literature shares methods with the notational tradition but is oriented
+toward design rather than description: rather than asking which variables predict
+scoring, it asks how teams should organise and what the trade-offs between
+organisational choices are.
+
+\subsubsection{The Zonal--Man--Hybrid Taxonomy}
+
+The foundational distinction in defensive corner organisation is between
+\emph{zonal marking} and \emph{man-to-man marking}. In a zonal system, each
+defender is assigned a specific area of the penalty box and is responsible for
+any ball that enters that area, regardless of which attacker attacks it. In a
+man-marking system, each defender is paired with a specific attacker and follows
+that attacker's movement until delivery. Pure systems of either type are rare in
+elite football: the \emph{hybrid} system, which assigns some defenders to zones
+and others to individual attackers, has become the dominant structure at
+international and domestic elite level \citep{FIFA2023, MBP2025}.
+
+FIFA's Football Performance Insights report from the 2022 World Cup provides
+the most systematic recent taxonomy \citep{FIFA2023}. A defensive setup is
+classified as predominantly \emph{zonal} when four or more players are assigned
+zonal responsibilities, as predominantly \emph{man} when more than 70\,\% of
+the in-box defenders are marking individually, and as \emph{hybrid} otherwise.
+Applying this taxonomy to World Cup data, the report found that 26 of 32 teams
+brought all ten outfield players back to defend corners, that hybrid setups
+dominated, and that strongly zonal teams won a substantially higher proportion
+of first contacts on delivered crosses: the United States (five zonal defenders)
+cleared 84\,\% of first balls; Germany (six zonal defenders) cleared 75\,\%.
+
+Academic work corroborates these patterns. Pulling and Newton
+\citeyearpar{PullingNewton2017} showed that near-post guard systems --- in which
+a dedicated defender is stationed at the near post inside or immediately outside
+the six-yard box --- materially reduce the probability of a shot from inswinging
+corners targeted at that area. Pulling, Robins, and Rixon
+\citeyearpar{Pulling2013} documented substantial cross-club variation in how
+Premier League sides allocate defenders between zones and man-to-man assignments,
+and reported lower concession rates for mixed strategies that included near-post
+coverage. Borr\'as and Sainz de Baranda \citeyearpar{Borras2005} and
+S\'anchez-Flores \citeyearpar{SanchezFlores2012} reached analogous conclusions
+for Spanish football, with the latter also demonstrating that goalkeeper starting
+depth relative to the goal line materially changes the spatial coverage of the
+zonal block in front of him. The 2025 systematic review \citep{MDPI2025}
+synthesises this evidence and concludes that mixed marking strategies with
+near-post coverage consistently yield lower concession rates than either pure
+alternative, while acknowledging that the inconsistency of zone definitions
+across studies makes precise quantification difficult.
+
+The coaching literature is explicit about the trade-offs. Zonal marking
+concentrates defenders between the ball and goal, simplifies communication, and
+requires defenders to \emph{attack the ball} rather than track a moving player;
+but it is vulnerable to deliberate blocking runs that occupy a zone without
+attacking the ball, and to deliveries aimed precisely between two zonal
+defenders. Man-marking eliminates the problem of uncontested runners and allows
+defenders' physical attributes to be matched against specific threats, but is
+\emph{reactive} by construction: a man-marker who watches his attacker rather
+than the ball is perpetually a step behind on delivery \citep{TacticalAnalyst2016}.
+Individual defensive errors propagate into goals because there is no positional
+safety net. The hybrid compromise reduces the severity of both failure modes but
+introduces new ones: confusion about responsibility when attackers move between
+zones and markers, and difficulty adjusting to short corners that require the
+zonal block to reorganise quickly. This three-way taxonomy is directly reflected
+in the defensive strategy classification developed for SQ1 of this thesis
+(Section~\ref{sec:sq1_team}), which distinguishes setups by marking intensity
+and the presence or absence of short and counter defenders.
+
+\subsubsection{Specific Defensive Roles}
+
+Beyond the aggregate system label, the coaching literature identifies specific
+\emph{positional roles} that individual defenders can occupy during a corner.
+These include: the near-post guard (stationed inside the six-yard box at the
+near post); the far-post guard (analogous position at the far post); the
+short-corner guard (stationed close to the ball to press a short corner option);
+the back-space defender (positioned at the edge of the penalty area to prevent
+cut-back shots and cover the counter-attack); and the man-marker (paired with a
+specific attacker). MBP School \citeyearpar{MBP2025} describes a typical hybrid
+setup as employing two or three zonal defenders between the six-yard box and the
+penalty spot, one near-post guard, two to three man-markers on the most dangerous
+aerial targets, and one or two edge defenders. This granular role vocabulary is
+directly adopted in the seven-role taxonomy of Bauer, Anzer, and Smith
+\citeyearpar{Bauer2022} and is reflected in the four-role classification
+(MAN, ZONAL, SHORT, COUNTER) used in SQ1 of this thesis, which collapses the
+full taxonomy to achieve classification accuracy on the available labelled
+dataset.
+
+\subsubsection{Attacking Routines and Tactical Design}
+
+On the attacking side, the coaching and applied practitioner literature has
+moved considerably ahead of the academic literature in recent years. Early
+academic work catalogued a binary distinction between \emph{static} offensive
+organisation (players start from fixed positions) and \emph{dynamic} organisation
+(players begin grouped and execute rehearsed runs) \citep{Maneiro2014}. Maneiro's
+analysis found that dynamic organisation is associated with higher shot-conversion
+rates, a finding replicated in women's elite football by Beare and Stone
+\citeyearpar{BeareStone2019}. This static/dynamic dimension is directly reflected
+in the movement-profile classification of SQ2 (Section~\ref{sec:sq2_runs}).
+
+Practitioner writing has developed a much richer vocabulary than the academic
+literature captures. Set-piece specialists --- most notably Gianni Vio, whose
+work was first operationalised at Brentford and later used in the Italian
+national team's UEFA Euro 2020 campaign, and Nicolas Jover, whose approach
+transformed Arsenal's dead-ball effectiveness --- describe attacking corner
+routines in terms of \emph{themes}: coordinated multi-player configurations
+with specific strategic intentions. Common themes include \emph{stacking}
+(clustering three or more attackers at the near post to force defensive
+overcommitment, then breaking in multiple directions), \emph{cross-stacking}
+(a near-post stack positioned on the far side, inviting cross-goal runs),
+\emph{box} setups (four attackers forming a rectangle that disperses in four
+directions on delivery), \emph{train} setups (attackers in single file, splitting
+at delivery), and \emph{targets-and-screens} routines (in which one attacker's
+primary role is to physically obstruct a specific defender's movement so that a
+second attacker can receive the ball unmarked). Each of these themes is defined
+not by any single player's action but by the \emph{coordinated pattern} of
+multiple players' starting positions and runs --- precisely the kind of
+multi-player spatiotemporal pattern that tracking data can capture but
+categorical notational codes cannot. The goal of SQ2 in this thesis is to
+operationalise this practitioner vocabulary as a data-derived taxonomy of
+attacking movement profiles, grounded in manual observation of 86 corners and
+automated via a rule-based running-line classifier applied to the full
+1{,}893-corner dataset.
+
+% ------------------------------------------------------------
+\subsection{Tracking Data and Machine Learning Applied to Corner Kicks}
+\label{sec:lit_tracking}
+% ------------------------------------------------------------
+
+The application of tracking data to football tactics has matured rapidly since
+Bialkowski and colleagues \citeyearpar{Bialkowski2014, Bialkowski2016}
+demonstrated that spatiotemporal player trajectories could be used to
+automatically recover team formations and individual positional roles. Rein and
+Memmert \citeyearpar{ReinMemmert2016} established the theoretical framework for
+big-data approaches to football performance, arguing that the central challenge
+is not data availability but the development of theoretically grounded models
+that translate high-frequency positional observations into tactically meaningful
+constructs. Goes and colleagues \citeyearpar{Goes2019, Goes2021} subsequently
+demonstrated that features derived from tracking data --- relative velocities,
+distance to nearest opponents, time-to-goal measures, and convex hull area
+--- can be used to model pass effectiveness, team performance, and space
+creation, establishing a feature-engineering vocabulary that has since been
+widely adopted. Recent systematic reviews \citep{RicoGonzalez2023,
+Clemente2025, OttingKarlis2023} document a proliferation of methods applied to
+the open-play problem: hidden Markov models for tactical-state identification,
+graph neural networks for multi-agent interaction modelling, Delaunay
+triangulations for formation analysis, and unsupervised clustering methods for
+discovering latent tactical structure.
+
+Within this broader field, the set-piece-specific literature is still emerging
+but has produced four landmark contributions that are in direct methodological
+dialogue with this thesis.
+
+\subsubsection{Power et al.\ (2018): Mythbusting Set Pieces}
+
+Power, Hobbs, Ruiz, Wei, and Lucey \citeyearpar{Power2018} introduced the first
+large-scale, tracking-data-based analysis of set pieces in \emph{Mythbusting
+Set-Pieces in Soccer}, presented at the MIT Sloan Sports Analytics Conference.
+Working with Premier League data from the 2016/17 season, they demonstrated that
+set-piece possessions generate goals at 1.8\,\% per possession versus 1.1\,\% for
+open-play possessions, providing the quantitative grounding for treating set
+pieces as a market inefficiency. Their paper introduced image-based
+representations of set-piece configurations: the positions of all players on
+the pitch were encoded as spatial heatmaps, and image-similarity measures were
+used to retrieve corners from a large database that matched a given target
+situation. Critically, they framed the defensive-side analysis as an explicit
+search for exploitable inefficiencies --- gaps between what a defence is designed
+to prevent and what attacking routines actually challenge it with --- setting an
+agenda that subsequent work, including this thesis, has continued to pursue.
+
+\subsubsection{Shaw and Gopaladesikan (2020): The Corner-Kick Playbook}
+
+Shaw and Gopaladesikan's \emph{Routine Inspection: A Playbook for Corner Kicks}
+\citeyearpar{ShawGopaladesikan2020} is the most methodologically influential
+prior work for this thesis, and the winner of the research paper competition at
+the 2021 MIT Sloan Sports Analytics Conference. It is the first study to address
+both the offensive and defensive characterisation of corners from tracking data
+within a single framework, and it establishes the \emph{player-level} approach
+to set-piece analysis that is adopted and extended here.
+
+On the offensive side, they defined an attacking \emph{run} as a player's
+starting location two seconds before the corner is taken and their \emph{target
+location} either one second after first ball contact or two seconds after
+delivery, whichever comes first. Critically, the ball trajectory is excluded from
+this definition: the intended target of a cross frequently differs from where the
+ball arrives, making the ball endpoint an unreliable proxy for attacking intent.
+They used Gaussian mixture modelling to cluster starting locations into six zones
+and target locations into seven zones, producing 42 theoretically possible
+player runs; non-negative matrix factorisation (NMF) then compressed
+co-occurring runs into 30 ``routine'' basis vectors. An entire team's season of
+corners could thereby be summarised as a distribution over routines --- a
+statistical playbook for opposition scouting. On the defensive side, they trained
+a supervised classifier on manually labelled corners to distinguish zonal from
+man-marking defenders at the player level, achieving approximately 81\,\% precision
+and recall for zonal classification. Their player-level aggregation approach ---
+characterising a team's defensive setup as the ratio and spatial distribution of
+individually classified roles --- is directly adopted in SQ1 of this thesis.
+
+\subsubsection{Bauer, Anzer, and Smith (2022): Fine-Grained Role Classification}
+
+Bauer, Anzer, and Smith \citeyearpar{Bauer2022} extended the defensive
+classification problem to a richer taxonomy. Rather than a binary zonal/man
+distinction, they identified seven defensive roles: player-marking, zonal-marking,
+positioned for counterattack, back-space defender, short-corner guard, near-post
+defender, and far-post defender. Working with Bundesliga tracking data, they
+hand-labelled the role of every defensive player in 213 corners across 33 matches
+and trained an ensemble classifier with data augmentation, achieving a weighted
+accuracy of 89.3\,\% against inter-labeller ground truth. Crucially, the model
+correctly identified the specific attacker being man-marked 80.8\,\% of the time,
+demonstrating that tracking data encode sufficient information to solve the
+\emph{assignment} problem --- not just the role-classification problem. They also
+demonstrated that a rule-based baseline could be used as weak supervision to
+bootstrap learning on unlabelled data, following the Snorkel paradigm
+\citep{Ratner2017}.
+
+Three aspects of their methodology are directly adopted in SQ1 of this thesis.
+First, the two-step pipeline: step one classifies each defender's role (MAN,
+ZONAL, SHORT, or COUNTER); step two applies the Hungarian assignment algorithm
+to assign specific attacking targets to the identified man-markers as a
+minimum-cost bipartite matching problem. Second, the feature engineering approach:
+pair-wise distance and velocity features computed over multiple pre-delivery
+time windows (2, 3, and 5 seconds), motion correlation between defender and
+attacker trajectories, mutual nearest-neighbour indicators, and distance to
+ball. Third, the leave-one-match-out cross-validation scheme, which prevents
+information leakage between training and test sets at the match level.
+
+\subsubsection{Wang et al.\ (2024): TacticAI}
+
+Wang and colleagues \citeyearpar{Wang2024} published \emph{TacticAI} in
+\emph{Nature Communications}, representing the most technically ambitious
+application of machine learning to corner-kick analysis to date. TacticAI was
+trained on 9{,}693 corners from three Premier League seasons in collaboration
+with Liverpool FC. It represents each corner as a graph in which nodes are
+players (with positions and velocities as node features) and edges encode spatial
+relationships, and uses geometric graph neural networks --- invariant to
+pitch-symmetry transformations --- to perform three tasks: predicting the
+receiver of the corner delivery, predicting whether a shot attempt occurs, and
+\emph{generating} suggested attacker repositioning to maximise the probability
+of a shot. In a blinded evaluation with Liverpool's coaching and analysis staff,
+TacticAI's suggested player setups were judged preferable to the original
+configuration in approximately 90\,\% of cases. This result demonstrates that
+deep learning on tracking-derived graph representations can produce tactically
+credible and practically useful outputs.
+
+TacticAI is a landmark contribution and its architectural choices --- geometric
+deep learning, graph-based player representations, symmetry invariance --- are
+likely to define the next generation of set-piece analytics tools. However, its
+scope is confined to the \emph{prescriptive} question on the offensive side:
+given an observed defensive setup, where should attackers stand? It does not
+produce an interpretable, separable characterisation of the defensive system
+itself, it does not classify attacking routines into a taxonomy that coaching
+staff can design from, and it does not address the conditional effectiveness
+question --- which attacking approach is most effective against which defensive
+type --- that is the central objective of this thesis. The present work is
+therefore complementary to TacticAI rather than competing with it: it produces
+the interpretable typologies of both offensive and defensive behaviour that make
+the conditional effectiveness question answerable in the language that coaches
+use.
+
+% ------------------------------------------------------------
+\subsection{Individual Player Attributes and Aerial Performance}
+\label{sec:lit_players}
+% ------------------------------------------------------------
+
+A fourth, more dispersed body of literature concerns the contribution of
+individual player attributes to corner outcomes. The aerial duel is the primary
+mechanism by which corner deliveries are converted into shots or cleared. An
+aerial duel is operationally defined by providers such as Wyscout and Opta as a
+contest in which two or more opposing players jump simultaneously for a ball in
+the air; the duel is won by the player who touches the ball first. Derived
+statistics --- aerial duels won per 90 minutes, aerial duel win rate --- are
+standard features in player scouting platforms and are widely used as proxies
+for aerial ability in applied work.
+
+The physical and technical determinants of aerial performance are multi-dimensional.
+Forte and colleagues \citeyearpar{Forte2019}, in an observational analysis of
+920 headers from the 2017/18 Premier League, showed that set-piece situations
+account for a substantial proportion of all heading actions, that most headers
+result in possession being lost rather than retained, and that pre-jump body
+orientation, contact surface, and positioning relative to the ball explain a
+meaningful share of heading outcome variance. Height, jump height, and timing
+are the three attributes most consistently cited by coaches in assessing aerial
+threat; however, they are only loosely correlated with raw aerial duel win rate
+because win rate conflates a player's own ability with the quality and height of
+the specific opponents they have been tested against.
+
+Kim, Lee, and Park \citeyearpar{Kim2024}, addressing precisely this confound,
+applied a height-adjusted Elo rating model to all aerial duels across three
+seasons of the Korean K League 1. They found that player rankings by adjusted
+Elo differed substantially from rankings by raw win rate: the player ranked first
+by Elo placed third by raw rate, and several players in the raw top-twenty fell
+out of the adjusted top-fifty entirely. This result has direct implications for
+SQ4 of this thesis: any attempt to link corner outcomes to individual aerial
+attributes must use opponent-adjusted or context-normalised metrics rather than
+raw duel win rates, which systematically favour players who happened to face
+weaker aerial opponents rather than those with genuinely superior aerial
+technique. In the absence of an Elo-based estimate for all players in the Eerste
+Divisie dataset, this thesis uses aerial duel win rate as the primary attribute
+while acknowledging its limitations, and cross-references with player height
+where metadata are available.
+
+The existing corner-kick literature has engaged only lightly with individual
+attributes. Casal and colleagues \citeyearpar{Casal2015, Casal2017}, Pulling and
+Newton \citeyearpar{PullingNewton2017}, and most notational studies treat players
+as interchangeable within their tactical roles. Shaw and Gopaladesikan
+\citeyearpar{ShawGopaladesikan2020} and Bauer, Anzer, and Smith
+\citeyearpar{Bauer2022} do not incorporate individual attributes in their
+classification models. Wang et al.\ \citeyearpar{Wang2024} use position and
+velocity as node features in TacticAI but do not attempt to model player-specific
+aerial skill. The player-quality dimension has therefore been characterised and
+theoretically motivated but not integrated with the structural analysis of corner
+tactics, leaving the interaction between player ability and tactical setup ---
+the question that distinguishes a decision-support tool from a population-level
+statistical summary --- unaddressed in the existing literature.
+
+% ------------------------------------------------------------
+\subsection{Synthesis: The Research Gap}
+\label{sec:lit_gap}
+% ------------------------------------------------------------
+
+The four bodies of literature reviewed above each make important contributions,
+but each has a boundary that prevents it from answering the question posed in
+Section~\ref{sec:research_questions}. The notational tradition provides a rich
+descriptive vocabulary and a well-established set of performance indicators, but
+operates on discrete categorical variables and cannot access the continuous
+spatiotemporal information that distinguishes tactical intent from spatial
+outcome. The coaching-science literature provides the conceptual vocabulary ---
+zonal, man, hybrid, stacking, blocking, targeting --- that coaches use in
+practice, but does not derive these concepts automatically from data and does not
+evaluate them conditionally on both sides of the corner simultaneously. The
+tracking-data literature has demonstrated that individual defensive roles can be
+classified from positional data with high accuracy \citep{Bauer2022}, that
+attacking routines can be represented as distributions over player-movement
+patterns \citep{ShawGopaladesikan2020}, and that deep learning can generate
+tactically credible positional suggestions \citep{Wang2024} --- but no study has
+combined a data-derived characterisation of both sides into a single conditional
+effectiveness framework. The individual-attributes literature has shown that
+raw aerial duel win rates are insufficient proxies for aerial ability
+\citep{Kim2024} and that heading outcome is multidimensionally determined
+\citep{Forte2019}, but has not been integrated with the structural analysis of
+set-piece tactics.
+
+The gap is therefore not a lack of data, methods, or descriptive knowledge.
+It is the absence of an integrated, data-driven framework that simultaneously
+characterises the attacking routine, the defensive structure, and the individual
+player attributes involved in a given corner kick, and then uses these
+characterisations jointly to answer the question that motivates all set-piece
+coaching: \emph{which of our attacking approaches is most likely to succeed
+against this opponent's specific defensive configuration, given our players'
+qualities?}
+
+This thesis builds that framework. Using a dataset of 1{,}893 corner kicks from
+the 2025/26 Dutch Eerste Divisie season, supplemented by 86 manually labelled
+corners that serve as ground truth, the following chapters develop a five-layer
+analytical pipeline --- defensive role classification (SQ1), offensive pattern
+classification (SQ2), conditional effectiveness analysis (SQ3), player-quality
+modelling (SQ4), and a practical preparation tool (SQ5) --- that moves from raw
+tracking and event data to opponent-specific tactical recommendations. The
+methodological design of this pipeline is described in full in
+Chapter~\ref{sec:methods}.
