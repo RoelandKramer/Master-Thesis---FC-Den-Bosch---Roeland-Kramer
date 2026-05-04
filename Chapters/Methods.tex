@@ -453,10 +453,18 @@ In this study, $\overline{\mathrm{xG}}$ is extracted by tracing each corner's
 \texttt{sequenceId} through the raw match event files and selecting the highest
 xG value among all subsequent \texttt{SHOT}, \texttt{HEADER}, and
 \texttt{SHOT\_FREE\_KICK} events in that sequence.
-Across all 1,401 direct corners, 347 (24.8\%) generated at least one shot;
-the remaining corners contribute CTS~= 0.
-The overall mean CTS for direct corners is 0.0175
-($\overline{\mathrm{xA}} = 0.018$; $\overline{\mathrm{xG}} = 0.040$).
+
+A property of CTS that warrants explicit acknowledgement is its behaviour
+under sequence-level zero-inflation. When the corner does not generate a
+shot, $\overline{\mathrm{xG}} = 0$ and CTS collapses to zero regardless of
+delivery quality. As a consequence, CTS aggregated over a group of corners
+mixes two underlying quantities: the probability that the corner produces
+any shot and the conditional quality of that shot. This is conceptually
+desirable for an effectiveness measure but means that the harmonic-mean
+form is, in practice, dominated by shot-generation rate when the rate is
+low. The complementary shot-generation indicator is therefore retained as a
+second outcome to allow these two components to be examined separately
+(Section~\ref{sec:sq3_analysis}).
 
 \subsubsection{Shot generation.}
 A binary indicator ($y_1 \in \{0,1\}$) of whether any shot event occurs within
@@ -498,10 +506,13 @@ ratio test against an intercept-only baseline.
 
 \subsubsection{Step 3 — Linear regression (CTS).}
 An ordinary least squares (OLS) regression of the same predictors on CTS is
-estimated alongside Equation~\ref{eq:logit}. Given the zero-inflated
-distribution of CTS (75.2\% of direct corners have CTS~= 0 owing to no
-subsequent shot), a two-part hurdle model \citep[see][for the approach in
-sports contexts]{Rathke2017} is considered as a robustness check.
+estimated alongside Equation~\ref{eq:logit}. Because CTS is heavily
+zero-inflated by construction, a two-part hurdle model
+\citep[see][for the approach in sports contexts]{Rathke2017}
+is estimated as a robustness check: a logistic component models whether
+CTS~$> 0$ (equivalent to shot generation), and a linear component models
+the magnitude of CTS conditional on a shot occurring. Substantive
+conclusions are drawn only where the OLS and hurdle estimates agree.
 
 \subsubsection{Sample Size and Power}
 \label{sec:sq3_power}
@@ -512,65 +523,6 @@ $1401 / (2 \times 3) \approx 233$ corners. Interaction cells using the full
 delivery type code (22 levels) are considerably smaller; these are therefore
 not included in the regression model, and the analysis restricts the delivery
 dimension to the coarser decomposition in Table~\ref{tab:offensive_dims}.
-
-\subsection{Descriptive Effectiveness Results}
-\label{sec:sq3_descriptive}
-
-\subsubsection{Delivery type.}
-Table~\ref{tab:cts_by_delivery} reports mean CTS by delivery type for all
-groups with $n \geq 10$ crossed corners.
-Central deliveries into the penalty area (IN\_PA3: CTS~= 0.033; OUT\_GA2:
-CTS~= 0.032; IN\_GA2: CTS~= 0.029) are substantially more threatening than
-near-post and far-post deliveries to the same depth band
-(IN\_GA1: CTS~= 0.015; OUT\_GA1: CTS~= 0.004).
-Deliveries to the \texttt{FRONT} zone (in front of the six-yard box) and to
-the \texttt{EDGE} zone are consistently below average (CTS~$< 0.005$).
-In-swing corners (CTS~= 0.018) marginally outperform out-swing corners
-(CTS~= 0.017).
-
-\subsubsection{Ball flight.}
-Medium-height deliveries ($3$--$8$~m peak height; CTS~= 0.021) generate
-more threat than floated deliveries ($>8$~m; CTS~= 0.009) or ground-level
-deliveries ($<0.5$~m; CTS~= 0.001). Low deliveries ($0.5$--$3$~m;
-CTS~= 0.013) occupy an intermediate position. These patterns suggest that
-flatter, more direct deliveries are harder to defend than high, hanging
-crosses in the Eerste Divisie context.
-
-\subsubsection{Attacker movement (running lines).}
-Running line data are available for 334 of the 1,401 crossed corners
-(corners with full tracking coverage). Among corners with a dominant run
-direction, central-dominated setups (\texttt{n\_central} highest;
-CTS~= 0.034, $n = 13$) and second-phase setups (CTS~= 0.024, $n = 158$)
-outperform corners dominated by static positioning (CTS~= 0.013, $n = 125$)
-and near-post runs (CTS~= 0.003, $n = 27$). The near-post finding is
-noteworthy: near-post runners draw defenders to the near post and may
-\textit{reduce} the attacking threat, consistent with the role of these
-runners as blockers rather than primary receivers. The majority of corners
-($n = 1{,}067$) lack tracking coverage (\texttt{UNKNOWN}); this limits the
-power of running line comparisons.
-
-\subsubsection{Attacker tactical roles (86 labelled corners).}
-For the manually labelled subset, the presence of blockers is associated
-with divergent outcomes: corners featuring a \texttt{BLOCK\_GK} player
-(screens the goalkeeper; $n = 14$) show higher mean CTS (0.019) than those
-without (0.014), consistent with the blocker creating a direct shooting
-lane. By contrast, corners with a \texttt{BLOCK\_DEF} player (blocks a
-specific outfield defender; $n = 11$) show lower mean CTS (0.003 vs.\
-0.016), possibly reflecting that these corners are executed under conditions
-where the defence is concentrated. Corners featuring three decoy runners
-(\texttt{DECOY}~= 3; $n = 15$) achieve the highest mean CTS (0.036),
-suggesting that systematic decoy movement creates exploitable defensive gaps.
-
-\subsubsection{Defensive strategy.}
-Among the 86 labelled corners, corners defended with a predominantly zonal
-structure ($n = 37$; CTS~= 0.020) appear more threatening than those with a
-predominantly man-marking structure ($n = 6$; CTS~= 0.000). This pattern
-should be interpreted cautiously: the man-marking sample is small, and
-zonal defences are likely deployed by teams facing higher-quality opponents,
-introducing a selection confound. The primary SQ3 regression analysis
-(Section~\ref{sec:sq3_analysis}) controls for this by operating on the full
-1,401-corner dataset with defensive strategy labels from the automated
-classifier.
 
 \section{SQ4: Individual Player Qualities and Corner Success}
 \label{sec:sq4}
@@ -644,35 +596,110 @@ primary research question of SQ4.
 \subsection{Overview}
 \label{sec:sq5_overview}
 
-SQ5 integrates the outputs of SQ1–SQ4 into a practical preparation tool aimed at
-supporting coaches in designing corner kick routines against specific opponents.
-The tool consists of two components: (A) an opponent scouting report and
-(B) a positional response model, referred to informally as the
-\textit{magnet board}.
+SQ5 translates the analytical outputs of SQ1–SQ4 into an applied preparation
+artefact intended for use within FC Den Bosch's analysis workflow. The
+deliverable consists of two components: (A) integration of the corner-kick
+findings into the club's in-development \textit{Data \& Video Analyser}
+(D\&V Analyser), and (B) a positional response model, referred to
+informally as the \textit{magnet board}, which sits inside Component A as
+its corners-specific interactive view.
 
-\subsection{Component A: Opponent Scouting Report}
-\label{sec:sq5_scouting}
+\subsection{Component A: Integration into the Data \& Video Analyser}
+\label{sec:sq5_dv_analyser}
 
-For a given upcoming opponent, the following steps are executed:
+\subsubsection{Scope and rationale.}
+In parallel to the present thesis, the author is developing a Data \& Video
+Analyser to be deployed at FC Den Bosch from the 2026–2027 season onward.
+The D\&V Analyser is a unified pre- and post-match preparation tool that
+aligns event-level analytics (build-up, key passes, crosses, shots,
+defensive transitions, set pieces) with the corresponding match video
+clips, allowing coaching staff to move directly from a tabulated event or
+metric to the underlying footage. Whereas existing third-party platforms
+typically present numbers and video as separate artefacts, the D\&V
+Analyser is designed around a single principle: every quantitative claim
+shown to a coach is one click away from the video evidence that produced
+it.
+The corners module of the D\&V Analyser is populated by the outputs of
+this thesis. The integration described below therefore constitutes the
+applied contribution of the work and is the channel through which the
+findings reach the practitioners they are intended for.
 
-\begin{enumerate}
-  \item \textbf{Defensive profile}: all corners in which the opponent appeared
-        as the defending team are identified and their defensive strategy types
-        (from SQ1) are tabulated. The modal defensive strategy constitutes the
-        \textit{typical defensive setup}.
-  \item \textbf{Effectiveness lookup}: the SQ3 effectiveness matrix is queried
-        for the opponent's typical defensive strategy. Offensive dimensions
-        with above-average CTS against this strategy are highlighted as
-        recommended attacking approaches.
-  \item \textbf{Player qualities}: the opponent's man-markers (from SQ1) are
-        identified, along with their aerial duel win rates (from SQ4), to
-        estimate the risk of man-marking assignments.
-\end{enumerate}
+\subsubsection{Data flow into the corners module.}
+For each corner kick in the historical dataset, the pipeline produced in
+SQ1–SQ4 yields a structured record containing: (i) the offensive corner
+profile (delivery type, ball-flight category, attacker movement pattern,
+short-corner sub-type where applicable), (ii) the defensive setup of the
+opposing team (counts of zonal, man-marking, short, and counter-press
+roles, plus the derived defensive strategy label), (iii) the corner's
+effectiveness measures (CTS, sequence xG, shot generation, goal), and
+(iv) the corner taker's identity and TakerCTS. Each record is keyed by
+\texttt{(match\_id, start\_time\_ms)}, which doubles as the join key to
+the D\&V Analyser's video index: the millisecond timestamp aligned to
+match clock identifies the exact frame at which the corner is taken,
+enabling the D\&V Analyser to retrieve and play the corresponding clip on
+demand. The corners module therefore consumes the
+\texttt{corner\_cts.csv}, \texttt{attacking\_corner\_profiles.csv}, and
+the per-team aggregates produced in SQ1–SQ4 as static inputs, joined to
+the live video index at query time.
 
-The scouting report is formatted as a standardised one-page summary
-containing the opponent's defensive strategy distribution, the three most
-effective offensive approaches (by mean xG), and a schematic of the opponent's
-typical defensive organisation.
+\subsubsection{Opponent profile view.}
+For a given upcoming opponent, the corners module presents a tabulated
+profile assembled from the data flow described above. On the offensive
+side, this profile reports the opponent's empirical distribution over
+delivery types, ball-flight categories, dominant running-line patterns,
+and short-corner sub-types from their corners as the attacking team, with
+the most-frequent combinations surfaced as the opponent's modal
+attacking patterns. On the defensive side, it reports the empirical
+distribution over defensive role counts (e.g.\ ``four zonal, two
+man-markers, one short'') and the derived defensive strategy labels from
+SQ1, observed across that opponent's corners as the defending team. Each
+row in the profile is hyperlinked to the underlying corners; clicking a
+delivery-type row, for example, plays the video clips of every corner the
+opponent has taken into that delivery type, allowing the analyst to
+verify whether the empirical distribution reflects a genuine tactical
+preference or a small-sample artefact.
+
+\subsubsection{Effectiveness recommendation view.}
+Adjacent to the opponent profile, the corners module presents the
+output of the SQ3 effectiveness analysis conditioned on the opponent's
+modal defensive setup: which offensive dimensions have generated the
+highest CTS, given that defensive context, across the league. This is
+not used as a deterministic recommendation; rather, it is presented as a
+ranked list of \textit{candidate} attacking approaches, with both the
+point estimate and an indication of supporting sample size, so that
+coaches can weigh tactical advice against statistical confidence. Where
+sample sizes are too small to support comparison (typically the
+finer-grained delivery $\times$ defence cells), the cell is flagged
+rather than ranked. This treatment follows directly from the
+methodological caution discussed in Section~\ref{sec:sq3_power}.
+
+\subsubsection{Video-anchored validation loop.}
+The presence of the video link is methodologically important rather than
+merely cosmetic. A persistent risk in tactical analytics is that
+automated labels (defensive strategy types, running lines, delivery
+zones) drift from the tactical reality they purport to describe. By
+making every aggregate one click away from the underlying clips, the D\&V
+Analyser embeds a continuous validation loop: when an aggregate appears
+to disagree with the coach's tactical reading, the clips that produced
+the aggregate are immediately inspectable. This is the practical channel
+through which the limitations identified in Sections~\ref{sec:sq2_delivery}
+and~\ref{sec:sq2_runs} (e.g.\ delivery zones inferred from event endpoint
+rather than intended target, large fraction of corners without complete
+tracking) are surfaced to the user rather than hidden inside aggregate
+numbers.
+
+\subsubsection{Position within the thesis.}
+The D\&V Analyser itself is engineering work and is not in scope for the
+thesis. What is in scope is (i) the design specification of the corners
+module and its data contract with the underlying analyses
+(this section), (ii) the magnet-board view embedded within it
+(Section~\ref{sec:sq5_magnet}), and (iii) a worked example for one
+opponent demonstrating the end-to-end flow from raw corners to surfaced
+recommendation, which is reported in Chapter~\ref{ch:results}. The
+purpose of this component is to make the analytical contribution of
+SQ1–SQ4 actionable in a setting that practitioners actually use, and to
+ground the thesis's claim of practical relevance in a concrete artefact
+rather than an abstract recommendation.
 
 \subsection{Component B: Positional Response Model (Magnet Board)}
 \label{sec:sq5_magnet}

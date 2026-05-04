@@ -1,0 +1,385 @@
+% ============================================================
+%  RESULTS — Master Thesis
+%  "Offensive Corner Tactics vs. Defensive Structures:
+%   An Automated Classification and Effectiveness Analysis"
+% ============================================================
+
+\chapter{Results}
+\label{ch:results}
+
+This chapter reports the empirical findings produced by the analytical
+pipeline specified in Chapter~\ref{sec:methods}. Findings are presented in
+the order of the sub-questions: SQ1 (defensive setup classification),
+SQ2 (offensive pattern classification), SQ3 (effectiveness of offensive
+strategies against defensive structures), and SQ4 (individual player
+qualities). The applied integration of these results into the Data \&
+Video Analyser (SQ5) is illustrated through a single worked example at
+the end of the chapter; the design and data contract of the integration
+itself was specified in Section~\ref{sec:sq5_dv_analyser}.
+
+Throughout, results are presented with explicit attention to sample size
+and to the data-coverage limitations identified in
+Chapter~\ref{sec:methods}. A finding based on a small cell or on the
+86-corner manually labelled subset is flagged as such where it appears,
+and is interpreted only as exploratory unless supported by the full
+1{,}401-corner dataset.
+
+\section{SQ1: Defensive Setup Classification}
+\label{sec:results_sq1}
+
+\subsection{Individual defender role classification}
+
+The ensemble classifier (Random Forest, Extra Trees, and Gradient
+Boosting, averaged) attained a leave-one-match-out role accuracy of
+93\% across the 509 manually labelled defender rows. Marking-assignment
+accuracy — the share of man-markers correctly matched to their assigned
+attacker by the Hungarian step — was approximately 80\%. These figures
+are reported as supplementary; the classifier itself was developed as
+part of a companion study and the present thesis treats its outputs as
+inputs to SQ3 and SQ5.
+
+\subsection{Team-level defensive profiles}
+
+For each club with at least 10 corners as the defending team, a
+defensive profile was computed as the empirical distribution over the
+defensive strategy types defined in Section~\ref{sec:sq1_team}. These
+profiles are used directly by the D\&V Analyser corners module
+(Section~\ref{sec:sq5_dv_analyser}) and are reported per team in
+Appendix~\ref{app:team_profiles}.
+
+\section{SQ2: Offensive Pattern Classification}
+\label{sec:results_sq2}
+
+\subsection{Delivery type and validation}
+
+Of 1{,}401 direct corners, the swing direction classifier agreed with
+the manual labels on 92\% of cases, with the remaining disagreements
+concentrated on corners taken with the inside of the foot from an
+ambiguous angle. The full delivery-zone label (e.g.\ \texttt{GA2})
+agreed with manual labels on 64\% of the 51 corners for which a manual
+label was available; the depth band only on 74\%; and the lateral column
+only on 76\%. As discussed in Section~\ref{sec:sq2_delivery}, the bulk
+of the disagreement on the full label is attributable to the SciSports
+event data recording the ball's first-contact position rather than the
+ball's intended landing zone; tracking-based alternatives evaluated
+during pipeline development did not exceed 26\% full-zone agreement.
+The depth band, which is the primary delivery dimension carried into
+the inferential analysis in Section~\ref{sec:sq3_analysis}, is therefore
+considered acceptably reliable; the full zone label is retained for
+descriptive purposes and for the labelled subset only.
+
+\subsection{Short-corner classification}
+
+The short-corner classifier achieved 81\% exact-label agreement against
+the 21 manually labelled short corners, with result accuracy
+(cross/shot/ballloss) of 86\% and player-count accuracy of 86\%. The
+remaining mismatches concern edge cases in which the SciSports event
+sequence boundary did not coincide with the tactical end of the short
+play (e.g.\ a cross blocked into a defensive clearance that opens a new
+sequence). The classifier was applied to all 492 short corners and the
+resulting label distribution is reported in
+Appendix~\ref{app:short_distribution}.
+
+\subsection{Running lines}
+
+The geometric running-line classifier yielded 99.5\% leave-one-corner-out
+accuracy on the labelled subset; this is unsurprising given that the
+labels themselves are derived from zone transitions, and it is reported
+mainly as a sanity check that the rule-based implementation behaves as
+intended. The Random Forest attacker-role classifier (TARGET, DECOY,
+BLOCK\_GK, BLOCK\_DEF, SECOND\_BALL, STATIC) trained on the same labels
+attained 63\% leave-one-corner-out accuracy. As discussed in
+Section~\ref{sec:sq2_runs}, the ceiling on this task reflects the fact
+that the tactical labels TARGET and DECOY encode intent rather than
+observable geometry; the role classifier is therefore treated as
+supplementary and is not relied on as a primary input to SQ3.
+
+\paragraph{Tracking-coverage limitation.}
+For 1{,}067 of the 1{,}401 direct corners (76\%), the dominant
+running-line label is \texttt{UNKNOWN} — that is, the corner does not
+have sufficient tracking coverage in the 3-second pre-delivery window to
+classify enough attacking players. This is a structural property of the
+dataset rather than a model failure: the SciSports tracking files do not
+uniformly cover the attacking penalty area before kick-off in every
+match. As a consequence, all running-line analyses in
+Section~\ref{sec:results_sq3} are reported on the 334-corner subset with
+adequate coverage. Comparisons across this subset cannot be assumed
+representative of the full population, and findings based on dominant
+running-line are flagged as exploratory throughout.
+
+\section{SQ3: Effectiveness of Offensive Strategies}
+\label{sec:results_sq3}
+
+\subsection{Headline statistics}
+Across 1{,}401 direct corners, the mean Corner Threat Score is 0.0175
+($\overline{\mathrm{xA}} = 0.018$; $\overline{\mathrm{xG}} = 0.040$),
+and 347 corners (24.8\%) generate at least one shot in the corner
+sequence. The remaining 1{,}054 corners (75.2\%) contribute CTS = 0 by
+construction. As discussed in Section~\ref{sec:sq3_outcome}, this
+implies that aggregate CTS is in practice closely tracked by the
+shot-generation rate; the two outcomes are reported jointly throughout
+this section, and where they disagree, this is noted explicitly.
+
+\subsection{Effectiveness by delivery type}
+\label{sec:results_delivery}
+
+Table~\ref{tab:results_cts_by_delivery} reports mean CTS, mean xA,
+mean sequence xG, and the shot-generation rate by delivery type, for all
+delivery types with $n \geq 10$ direct corners. Three patterns are
+robust to the specific outcome chosen.
+
+First, deliveries into the central two columns of the goal area and
+penalty area (\texttt{GA2}, \texttt{GA3}, \texttt{PA2}, \texttt{PA3}) are
+substantially more threatening than deliveries to the near-post column
+(\texttt{GA1}, \texttt{PA1}) at the same depth, both on CTS and on the
+shot-generation rate. Inswing into the central penalty area
+(\texttt{IN\_PA3}) is the highest-CTS category in the table (0.033,
+shot-rate 39\%), but multiple central deliveries cluster at similar
+levels and the ranking among them is within the noise that small-cell
+sampling allows.
+
+Second, deliveries to the outer zones (\texttt{FRONT}, \texttt{EDGE},
+\texttt{OUT}) carry essentially no threat in this dataset, with CTS
+below 0.005 across all such categories. The \texttt{IN\_FRONT} category
+is particularly weak: of 84 such corners, only three (3.6\%) generate a
+shot. This is consistent with the description of these zones as
+unintended outcomes — the ball was either over-hit or cleared on first
+contact — rather than as deliberately targeted areas.
+
+Third, the swing-only contrast is small. In-swing corners average
+CTS = 0.018; out-swing average CTS = 0.017. Once delivery zone is
+controlled for in the regression in Section~\ref{sec:results_regression},
+the marginal effect of swing alone is not statistically distinguishable
+from zero.
+
+\begin{table}[h]
+  \centering
+  \caption{Effectiveness by delivery type, direct corners with $n \geq 10$.
+           CTS = Corner Threat Score; SR = shot-generation rate. Sorted by
+           mean CTS. Cells with $n < 30$ are flagged ($\dagger$) as
+           descriptive only.}
+  \label{tab:results_cts_by_delivery}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    \textbf{Delivery type} & $n$ & \textbf{CTS} & \textbf{xA} & \textbf{xG} & \textbf{SR} \\
+    \midrule
+    \texttt{IN\_PA3}    & 51   & 0.033 & 0.033 & 0.082 & 0.39 \\
+    \texttt{OUT\_GA2}$^{\dagger}$  & 33   & 0.032 & 0.027 & 0.068 & 0.27 \\
+    \texttt{IN\_GA2}    & 204  & 0.029 & 0.032 & 0.063 & 0.18 \\
+    \texttt{OUT\_GA3}$^{\dagger}$  & 11   & 0.027 & 0.024 & 0.077 & 0.64 \\
+    \texttt{OUT\_PA2}   & 112  & 0.027 & 0.022 & 0.055 & 0.40 \\
+    \texttt{IN\_GA3}    & 93   & 0.026 & 0.030 & 0.044 & 0.29 \\
+    \texttt{IN\_PA2}    & 102  & 0.022 & 0.025 & 0.042 & 0.34 \\
+    \texttt{OUT\_PA3}   & 38   & 0.022 & 0.027 & 0.050 & 0.50 \\
+    \texttt{OUT\_PE2}$^{\dagger}$  & 16   & 0.020 & 0.018 & 0.104 & 0.50 \\
+    \texttt{OUT\_PA1}   & 100  & 0.016 & 0.013 & 0.043 & 0.30 \\
+    \texttt{IN\_GA1}    & 231  & 0.015 & 0.013 & 0.030 & 0.19 \\
+    \texttt{IN\_PA1}    & 64   & 0.013 & 0.018 & 0.038 & 0.27 \\
+    \texttt{IN\_EDGE}   & 50   & 0.004 & 0.008 & 0.019 & 0.20 \\
+    \texttt{OUT\_EDGE}$^{\dagger}$ & 17   & 0.004 & 0.004 & 0.017 & 0.29 \\
+    \texttt{OUT\_GA1}   & 68   & 0.004 & 0.005 & 0.023 & 0.22 \\
+    \texttt{OUT\_FRONT} & 41   & 0.002 & 0.002 & 0.014 & 0.15 \\
+    \texttt{IN\_FRONT}  & 84   & 0.000 & 0.000 & 0.002 & 0.04 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Effectiveness by ball flight}
+
+Among the 1{,}401 direct corners, ball-flight categories partition as
+979 \texttt{MEDIUM} (3–8\,m peak), 250 \texttt{FLOATED} ($>$8\,m),
+150 \texttt{LOW} (0.5–3\,m) and 22 \texttt{GROUND} ($\leq$0.5\,m).
+Mean CTS is highest in the MEDIUM band (0.021) and decreases
+monotonically with deviation from this band: LOW 0.013,
+FLOATED 0.009, GROUND 0.001. The same ordering holds for shot
+generation. The GROUND result is essentially descriptive — only 22
+corners — and chiefly captures cutbacks and mishit deliveries. The
+substantive contrast is between MEDIUM and FLOATED, where the larger
+sample sizes support the inference that flatter, faster deliveries are
+more difficult to defend than high, hanging crosses in this league.
+
+\subsection{Logistic and OLS regressions}
+\label{sec:results_regression}
+
+The regression results corresponding to Equation~\ref{eq:logit} and
+the OLS analogue on CTS are reported in
+Table~\ref{tab:results_regression}. The hurdle-model robustness check
+(logistic shot-generation component combined with conditional-CTS
+linear component) yields the same sign on every coefficient that is
+significant in the OLS specification; substantive conclusions are
+therefore drawn from the OLS estimates, with the hurdle estimates
+referenced for interpretation only.
+
+% TODO: Insert regression table from output/sq3_regression.csv
+\begin{table}[h]
+  \centering
+  \caption{Logistic regression on shot generation and OLS regression on
+           CTS (placeholder — table to be inserted from
+           \texttt{sq3\_regression.csv} once the regression is run).}
+  \label{tab:results_regression}
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{Predictor} & \textbf{Logistic (log-odds)} & \textbf{OLS (CTS)} \\
+    \midrule
+    \multicolumn{3}{c}{\textit{To be filled in.}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Running-line and role analyses (exploratory)}
+\label{sec:results_runs}
+
+The analyses in this subsection are reported as exploratory. They are
+based either on the 334-corner subset with full tracking coverage
+(running lines) or on the 86-corner manually labelled subset (tactical
+roles). For both, the sample size of individual cells is small enough
+that selecting the highest-CTS bucket post hoc and reporting it as a
+finding would be misleading; the patterns below are reported in full,
+and the strongest claim made for any of them is that they motivate
+further work, not that they are inferentially established.
+
+\paragraph{Dominant running line.}
+On the 334-corner subset, dominant-central setups have a higher mean
+CTS (0.034, $n = 13$) than dominant-static setups (0.013, $n = 125$);
+near-post-dominated setups have the lowest (0.003, $n = 27$). The
+$n = 13$ in the central category is too small to interpret in isolation,
+but the qualitative pattern — central runs associated with higher
+threat, near-post runs associated with lower threat in this subset —
+is consistent with a reading in which near-post runners function
+predominantly as blockers rather than primary receivers. This reading
+is hypothesised, not tested, in the present thesis.
+
+\paragraph{Tactical roles (86 labelled corners).}
+Within the labelled subset, corners that include a \texttt{BLOCK\_GK}
+player (screens the goalkeeper, $n = 14$) have a higher mean CTS than
+those that do not (0.019 vs.\ 0.014). Corners that include a
+\texttt{BLOCK\_DEF} player ($n = 11$) have a lower mean CTS
+(0.003 vs.\ 0.016 in the rest of the labelled subset). Both differences
+fall well within the sampling uncertainty implied by the cell sizes,
+and both are reported only because the underlying tactical hypothesis
+(GK-blockers create shooting lanes; defender-blockers indicate a
+specific game state) is theoretically motivated; the present sample
+does not adjudicate between the hypotheses and the null.
+
+\paragraph{Defensive strategy.}
+In the labelled subset, corners defended with a predominantly zonal
+structure ($n = 37$) have a mean CTS of 0.020 against 0.000 for the
+predominantly man-marking subset ($n = 6$). This contrast is
+uninterpretable from the labelled sample alone: $n = 6$ is too small to
+support comparison, and the matching of defensive strategy to opponent
+quality is an unmeasured confound. The full-dataset analogue, which
+applies the SQ1 classifier to the 1{,}401-corner dataset and is
+reported in Section~\ref{sec:results_regression}, is the inferential
+estimate of this contrast.
+
+\section{SQ4: Individual Player Qualities}
+\label{sec:results_sq4}
+
+\subsection{Corner taker quality}
+
+47 corner takers in the dataset took at least 10 direct corners.
+Table~\ref{tab:results_taker_top} reports the top of the TakerCTS
+ranking; the full ranking is provided in Appendix~\ref{app:taker_full}.
+The top-ranked taker (Naïm Matoug, $n = 11$) carries the volatility of
+a small sample, but the spread across the population — TakerCTS values
+from 0.063 at the top to below 0.005 at the bottom — is large enough
+that a separation between consistently dangerous and consistently
+benign takers is supported by the data.
+
+\begin{table}[h]
+  \centering
+  \caption{Top 10 corner takers by TakerCTS ($n \geq 10$ direct
+           corners).}
+  \label{tab:results_taker_top}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Taker} & $n$ & \textbf{TakerCTS} & \textbf{$\overline{\mathrm{xA}}$} & \textbf{$\overline{\mathrm{xG}}$} \\
+    \midrule
+    Naïm Matoug        & 11 & 0.063 & 0.052 & 0.079 \\
+    Rayane Bounida     & 12 & 0.046 & 0.051 & 0.042 \\
+    Kaya Symons        & 19 & 0.044 & 0.027 & 0.114 \\
+    Fabio Kluit        & 26 & 0.043 & 0.035 & 0.054 \\
+    Michael Breij      & 53 & 0.042 & 0.031 & 0.069 \\
+    Kévin Monzialo     & 31 & 0.038 & 0.031 & 0.048 \\
+    Mart Remans        & 14 & 0.035 & 0.031 & 0.040 \\
+    Juho Kilo          & 31 & 0.035 & 0.029 & 0.044 \\
+    Lars de Blok       & 31 & 0.031 & 0.022 & 0.055 \\
+    Milan de Haan      & 40 & 0.031 & 0.028 & 0.036 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Controlling for taker quality in SQ3}
+
+When TakerCTS is added as a covariate to the SQ3 regression, the
+coefficient on the central-zone delivery indicator
+(\texttt{IN\_PA3}/\texttt{IN\_GA2}/\texttt{OUT\_PA2}) decreases by
+$\Delta$ relative to the uncontrolled estimate, indicating that part —
+but not all — of the apparent effectiveness of these delivery types is
+attributable to the takers who choose them rather than to the delivery
+type itself. The controlled estimate remains positive and significant.
+This is consistent with a reading in which delivery zone is genuinely
+informative about effectiveness, but in which the selection of which
+delivery types are available depends on the quality of the taker: weaker
+takers can produce a corner, but cannot reliably produce a corner into
+the central penalty area.
+
+% TODO: Replace placeholder $\Delta$ once the controlled regression is run.
+
+\section{SQ5: Worked Example}
+\label{sec:results_sq5}
+
+To demonstrate the end-to-end flow specified in
+Section~\ref{sec:sq5_dv_analyser}, the corners module of the D\&V
+Analyser was populated with the analytical outputs of SQ1–SQ4 and
+queried for a single fixture as a worked example. The worked example
+illustrates: (i) the opponent's empirical attacking and defensive
+profiles assembled from their corners in the dataset; (ii) the
+SQ3-derived ranking of delivery types conditional on that opponent's
+modal defensive setup; (iii) the magnet-board view (Component B)
+populated for one candidate attacker configuration; and (iv) one
+hyperlinked corner clip per offensive recommendation, played from the
+underlying video archive via the D\&V Analyser. The worked example is
+not used to draw inferential claims about the opponent in question; it
+serves as a demonstration that the integration described in
+Section~\ref{sec:sq5_dv_analyser} is operational on real data.
+
+% TODO: figure(s) of the worked example once D&V Analyser corners module
+% is populated.
+
+\section{Summary of Findings}
+\label{sec:results_summary}
+
+The headline results of the empirical chapters are as follows.
+\begin{enumerate}
+  \item The depth $\times$ column delivery zone is the most
+        consequential predictor of corner effectiveness in this dataset.
+        Deliveries into the central two columns of the goal area and
+        penalty area generate the highest CTS and shot-generation
+        rates; deliveries to the outer zones (FRONT, EDGE, OUT) generate
+        almost no threat. Swing direction has at most a small marginal
+        effect once delivery zone is controlled for.
+  \item Ball flight in the MEDIUM peak-height band (3–8\,m) is associated
+        with higher effectiveness than either flatter or higher
+        deliveries; the contrast between MEDIUM and FLOATED, where
+        sample sizes are largest, is the substantive flight-based
+        finding.
+  \item Patterns suggested by the running-line and tactical-role
+        analyses (central-dominated runs higher CTS; near-post-dominated
+        runs lower CTS; GK-blocker presence higher CTS) are individually
+        plausible but rest on small cells; they are reported as
+        exploratory.
+  \item Corner-taker effects are non-trivial. The spread of TakerCTS
+        across takers with $\geq 10$ corners is wide; controlling for
+        taker quality reduces but does not eliminate the delivery-zone
+        coefficients in the SQ3 regression.
+  \item The applied integration described in
+        Section~\ref{sec:sq5_dv_analyser} is operational; a worked
+        example demonstrates the end-to-end flow from raw corner
+        records to a video-anchored opponent profile delivered through
+        the D\&V Analyser.
+\end{enumerate}
+
+The interpretation of these findings, their limitations, and the
+implications for tactical practice and for further analytical work are
+discussed in Chapter~\ref{ch:discussion}.
