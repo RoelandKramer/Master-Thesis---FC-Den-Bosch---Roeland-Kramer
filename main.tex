@@ -78,11 +78,9 @@
 \usepackage[colorinlistoftodos]{todonotes}
 
 % ── Bibliography ─────────────────────────────────────────────────────────────
-% Switched from numeric to authoryear so that \citep{} and \citeyearpar{}
-% (used throughout the introduction) render correctly.
-% If you prefer numbered citations, change style=authoryear to style=numeric
-% and replace every \citep{} in the intro with \cite{}.
-\usepackage[backend=biber, style=authoryear, natbib=true]{biblatex}
+% Numeric [1] style. Citations are numbered in order of first appearance.
+% \cite{key}, \citep{key}, and \citet{key} all render as [n] / Author [n].
+\usepackage[backend=biber, style=numeric, natbib=true, sorting=none]{biblatex}
 \addbibresource{references.bib}
 
 % ── Hyperlinks (load last) ───────────────────────────────────────────────────
