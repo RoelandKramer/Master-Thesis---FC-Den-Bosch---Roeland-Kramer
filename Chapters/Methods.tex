@@ -168,16 +168,21 @@ D\&V Analyser (SQ5).
 \label{sec:sq1}
 
 When a corner is taken, every defending outfield player has a role: some mark
-a specific attacker, others guard an area of the box, one or two may press
+a specific attacker, others guard an area of the box (zonal), one or two may press
 the ball or hold a counter-attacking position. SQ1 aims to automatically
-identify these roles from tracking data and use them to characterise how a
-team defends corners. The pipeline has two stages, motivated by the structure
-of the labels themselves: two of the four
-defensive roles are spatially separable from position alone, while the other two
-require tracking-based behavioural features to disambiguate. SQ1 therefore consists
-of (i) a per-defender role classifier, (ii) a Hungarian assignment that links
-each man-marker to the specific attacker they are tracking, and (iii) a per-corner
-aggregation that produces the team-level defensive label used in SQ3.
+identify these roles from tracking and event data and use them to characterise how a
+team defends corners. The classification pipeline has three steps. First, each
+defender is assigned one of four roles. Two of these are relatively
+straightforward to detect from position alone: \texttt{COUNTER} defenders stand
+far from goal near the halfway line, and \texttt{SHORT} defenders move toward
+the corner flag rather than into the box. The harder distinction is between
+\texttt{ZONAL} and \texttt{MAN} marking — both roles are inside the penalty
+area, and separating them requires examining how a defender moves relative to
+specific attackers in the seconds before the kick. Second, for each defender
+identified as a man-marker, a matching step identifies which specific attacker
+they are tracking. Third, the individual labels are aggregated into a single
+team-level defensive strategy label per corner, used as the defensive predictor
+in SQ3.
 
 \subsection{Per-Defender Role Classifier}
 \label{sec:sq1_individual}
