@@ -19,51 +19,53 @@ the current state of the Data \& Video Analyser platform.
 
 \subsection{Role distribution in the labelled test set}
 
-Manual labelling was performed on 67 corner kicks, covering both
-attacking and defending players. For the defensive side, a total of
-730 defender-event rows were labelled across these corners. After
-normalising spelling variants, the role distribution is as follows:
+Manual labelling was performed on 67 crossed corner kicks, covering both
+attacking and defending players. For the defensive side, 477 defender rows
+carry a confirmed role label (249 rows were left unlabeled and excluded).
+Where the annotator entered \texttt{y}, this was treated as confirmation of
+the auto-detected role; inspection of these 114 rows shows that 111 had
+an auto-detected role of MAN, so they are counted as man-marking.
+After normalisation the role distribution is:
 
 \begin{table}[h]
   \centering
   \caption{Defensive role distribution in the manually labelled test
-           set (67 corners, 730 defender rows).}
+           set (67 corners, 477 confirmed defender rows).}
   \label{tab:sq1_role_dist}
   \begin{tabular}{lrr}
     \toprule
     \textbf{Defensive Role} & \textbf{Count} & \textbf{\%} \\
     \midrule
-    ZONAL    & 577 & 79\% \\
-    MAN      &  90 & 12\% \\
-    SHORT    &  46 &  6\% \\
-    COUNTER  &  17 &  2\% \\
+    ZONAL    & 213 & 45\% \\
+    MAN      & 201 & 42\% \\
+    SHORT    &  46 & 10\% \\
+    COUNTER  &  17 &  4\% \\
     \midrule
-    Total    & 730 & 100\% \\
+    Total    & 477 & 100\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Zonal marking is by far the dominant defensive structure in the Eerste
-Divisie 2025--26 dataset, appearing in roughly four out of five
-defensive interactions. Man-marking is observed in 12\% of cases,
-while short-corner press assignments (SHORT) and counter-pressing
-(COUNTER) together account for the remaining 8\%. This heavy class
-imbalance is an important constraint on classifier design; models that
-predict ZONAL for all rows would already achieve approximately 79\%
-row-level accuracy.
+The distribution is near-balanced between zonal and man-marking (45\% vs.\
+42\%), with short-corner press assignments at 10\% and counter-pressing at
+4\%. This balance is tactically plausible for the Eerste Divisie and makes
+the classification task genuinely challenging — a majority-class baseline
+would achieve only around 45\% accuracy.
 
 \subsection{Classifier accuracy per role}
 
 The ensemble classifier (Random Forest, Extra Trees, and Gradient
 Boosting, averaged) trained on tracking-derived pair-wise features
 attained a leave-one-corner-out (LOCO-CV) overall accuracy of
-approximately \textbf{93\%} on the labelled defender rows. Because the
-ZONAL class dominates the dataset, per-class performance is the more
-informative measure:
+approximately \textbf{93\%} on the confirmed 477 defender rows. Given
+the near-balanced class distribution, a majority-class baseline would
+only achieve $\approx$45\%, making the 93\% figure substantively meaningful
+rather than an artefact of class imbalance. Per-class notes:
 
 \begin{itemize}
-  \item \textbf{ZONAL}: high precision and recall; the large sample
-        supports reliable feature learning.
+  \item \textbf{ZONAL}: high precision and recall; relatively straightforward
+        to separate from MAN using the spread of defender positions across the
+        penalty area.
   \item \textbf{MAN}: correctly identified in the majority of cases;
         the key discriminating signal is the persistent small distance
         to a specific attacker throughout the pre-delivery window
