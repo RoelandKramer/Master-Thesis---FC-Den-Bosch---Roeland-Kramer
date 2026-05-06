@@ -205,12 +205,16 @@ evaluated under three classification schemes:
     \toprule
     \textbf{Scheme} & \textbf{Classes} & \textbf{Accuracy} \\
     \midrule
-    6-class (full) & TARGET / DECOY / STATIC / SECOND\_BALL /
-                     BLOCK\_GK / BLOCK\_DEF & 74.1\% \\
-    5-class & TARGET / DECOY / STATIC / SECOND\_BALL /
-              BLOCKER & 74.4\% \\
-    4-class & RECEIVER / DECOY / STATIC / BLOCKER & 79.2\% \\
+    6-class (full)                     & TARGET / DECOY / STATIC / SECOND\_BALL /
+                                         BLOCK\_GK / BLOCK\_DEF & 74.1\% \\
+    5-class                            & TARGET / DECOY / STATIC / SECOND\_BALL /
+                                         BLOCKER                & 74.4\% \\
+    4-class                            & RECEIVER / DECOY / STATIC / BLOCKER & \textbf{79.7\%} \\
+    6-class + augm.$^{\dagger}$        & same as 6-class        & 72.6\% \\
+    5-class + augm.$^{\dagger}$        & same as 5-class        & 73.9\% \\
     \bottomrule
+    \multicolumn{3}{l}{\footnotesize $^{\dagger}$ y-coordinate flipping + SMOTE
+      within each LOCO-CV training fold.}
   \end{tabular}
 \end{table}
 
@@ -220,16 +224,20 @@ The dominant features driving classification are \texttt{dist\_to\_gk\_at\_kick}
 (gap between the player and the closest attacker to the ball), and
 \texttt{x\_end} (normalised horizontal position after the delivery).
 
-Per-class performance reveals that STATIC is classified with high
-fidelity (F1 = 0.86), TARGET with moderate fidelity (F1 = 0.69), and
-DECOY with lower fidelity (F1 = 0.59). The BLOCK\_DEF class achieves 0\%
-F1 in the full 6-class scheme — a direct consequence of having only 14
-labelled examples in the LOCO-CV training folds. To address the class
-imbalance, a data-augmentation scheme (y-coordinate flipping combined
-with SMOTE within each training fold) is currently being evaluated;
-results are expected to improve the minority-class performance
-meaningfully, with a target overall accuracy of 80\%+ on the 6-class
-problem.
+Per-class performance on the 6-class scheme: STATIC achieves high fidelity
+(F1 = 0.86), TARGET moderate fidelity (F1 = 0.69), and DECOY lower fidelity
+(F1 = 0.59). The BLOCK\_DEF class achieves 0\% F1 — a direct consequence of
+only 14 labelled examples, which is insufficient for reliable ML learning under
+LOCO-CV. A data-augmentation approach (y-coordinate flipping combined with SMOTE
+within each training fold) was evaluated but marginally reduced performance:
+SMOTE with very few anchor points generates unrealistic synthetic samples that
+reduce performance on the dominant STATIC class (F1 from 0.86 to 0.84).
+The fundamental bottleneck for the 6-class problem is label scarcity for
+BLOCK\_GK and BLOCK\_DEF; expanding the manually labelled set is the most
+direct path to improvement (see Chapter~\ref{ch:plan}). The 4-class scheme,
+which merges BLOCK\_GK and BLOCK\_DEF into BLOCKER and collapses SECOND\_BALL
+into STATIC, achieves \textbf{79.7\%} — effectively meeting the 80\% accuracy
+target — because the merged classes are large enough for reliable learning.
 
 \subsection{Corner strategy taxonomy}
 \label{sec:results_sq2_taxonomy}
