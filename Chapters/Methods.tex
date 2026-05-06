@@ -24,7 +24,7 @@ The overarching logic is as follows: corner kicks are first characterised from b
 sides of the ball (SQ1: defensive setup; SQ2: offensive pattern), then matched to
 quantify effectiveness (SQ3), enriched with individual player attributes (SQ4), and
 finally synthesised into a practical preparation tool (SQ5).
-All analyses are applied to the same dataset, ensuring consistency across sub-questions.
+SQ1 \& SQ2 are tested on a manually labeled testset, and then once verificed, all analyses are applied to the entire dataset.
 Figure~\ref{fig:pipeline} provides an overview of the analytical pipeline.
 
 % \begin{figure}[h]
@@ -44,33 +44,36 @@ Figure~\ref{fig:pipeline} provides an overview of the analytical pipeline.
 All data were provided by SciSports through FC Den Bosch. Two data types were used.
 
 \subsubsection{Event data.}
-Event data contain one record per on-ball action, including the action type
+Event data contains one record per on-ball action, including the action type
 (e.g.\ \texttt{CORNER\_CROSSED}, \texttt{CORNER\_SHORT}, \texttt{HEADER},
 \texttt{CLEARANCE}), the player and team involved, the ball's start and end
 coordinates in metres (origin at pitch centre, $x$-axis along the length,
-$y$-axis along the width), the timestamp in milliseconds, and derived metrics
+$y$-axis along the width), the timestamp in milliseconds (steps of 100ms), and derived metrics
 such as delivery length, angle, expected goals (xG), and expected assists (xA).
 Additionally, each event contains a \texttt{sequenceId} that groups all actions
 within a single possession sequence, enabling reconstruction of what happened
-after every corner kick.
+after every corner kick. Event data is labeled by workers of SciSports, and is available within 
+48 hours of every match in the KeukenKampioenDivisie.
 
 \subsubsection{Tracking data.}
-Tracking data record the $(x, y)$ position of every player and the ball at
+Tracking data records the $(x, y)$ position of every player and the ball at
 10~Hz (one frame per 100~ms). Player records include a unique player identifier
 and shirt number. Ball records include an additional $z$-coordinate (height in
 metres) allowing computation of ball flight characteristics.
-Tracking data are provided in positional JSON files aligned to the same
-millisecond clock as the event data. Where a corner event is present in the
-event data and a corresponding tracking frame exists within a 200~ms tolerance,
-the corner is marked as \textit{synchronised} (\texttt{synced = True}).
+Tracking data are provided in positional JSON files that can be aligned to the same
+millisecond clock as the event data. SciSports includes the variable \texttt{synced} in the
+event data to indicate whether a given event can be reliably matched to tracking data; 
+all corners in the dataset that are not synchronised have been removed from the analysis. Tracking data
+is created by a computer vision pipeline run by SciSports that processes the broadcast 
+video feed, and is available within 48 hours of every match in the KeukenKampioenDivisie.
 
 \section{Dataset Composition}
 \label{sec:dataset_composition}
 
-Data span the 2025–2026 Dutch Eerste Divisie season, covering 281 unique matches
+Data used in this study spans the 2025–2026 Dutch Eerste Divisie season, covering 281 unique matches
 from 20 clubs. All 1,893 corner kicks that appear in the event data were extracted,
-of which all 1,893 are synchronised with tracking data. These consist of 1,401
-direct (crossed) corners and 492 short corners.
+of which {FILL IN} are synchronised with tracking data. These consist of {FILL IN}
+direct (crossed) corners and {FILL IN} short corners.
 Table~\ref{tab:dataset_overview} summarises the dataset.
 
 \begin{table}[h]
@@ -98,9 +101,12 @@ Table~\ref{tab:dataset_overview} summarises the dataset.
 \subsection{Manual Labelling}
 \label{sec:manual_labelling}
 
-A subset of 86 corners was manually labelled by the primary researcher using a
-custom labelling tool (\texttt{labeling\_tool.py}) that overlays tracking data
-on a 2D pitch visualisation. For each corner, the following were annotated:
+A subset of 101 synced corners were randomly placed into a manual labelling queue, stratified 
+by club and corner type (direct vs.\ short) to ensure representativeness. Of these, 
+86 were successfully labeled before the analysis phase; the remaining 15 were not due to 
+bad camera angles on the videos, which made it impossible to reliably annotate the required variables. 
+The 86 labelled corners are a subset of the 1,893 corners that were synced and therefore 
+kept. For each corner, the following were annotated:
 \begin{itemize}
   \item \textbf{Delivery type}: swing direction and target zone (see
         Section~\ref{sec:sq2_delivery});
@@ -116,16 +122,15 @@ on a 2D pitch visualisation. For each corner, the following were annotated:
 Labels were recorded in a structured spreadsheet
 (\texttt{labeling\_sheet\_v2.csv}) and used as ground truth for model training
 and validation.
-Inter-rater reliability was not formally assessed, as only one annotator was
-used; this is acknowledged as a limitation in Section~\ref{sec:limitations}.
+Inter-rater reliability is not yet formally assessed, as only one annotator was
+used; this is something that will be done later in the project timeline.
 
 \paragraph{Zone system.}
 The pitch area surrounding the goal was divided according to the zone system
-depicted in Figure~\ref{fig:zone_system}. A central column of width 18.32~m
+depicted in Figure~\ref{fig:{zone_system}}. A central column of width 18.32~m
 (the goal area width) was extended perpendicularly from the goal line up to
 the edge of the penalty arc ($\approx20.15$~m from the goal line). This column
-was subdivided into three lateral lanes of equal width (6.11~m each): column~1
-(near post), column~2 (central, between the posts), and column~3 (far post).
+was subdivided into three lateral lanes of equal width (6.11~m each).
 Four depth bands were defined within this column:
 \begin{itemize}
   \item \textbf{GA} (Goal Area): 0–5.5~m from the goal line ($x > 47.0$~m);
@@ -133,22 +138,23 @@ Four depth bands were defined within this column:
   \item \textbf{PE} (Penalty Edge): 11.0–16.5~m ($x > 36.0$~m);
   \item \textbf{PC} (Penalty Curve/Arc): 16.5–20.15~m ($x > 32.35$~m).
 \end{itemize}
-Beyond the central column, two lateral regions were defined: \textbf{Front Zone}
-(near side of the penalty area, $y_\mathrm{near} > 9.16$~m and $x > 36.0$~m)
-and \textbf{Edge Zone} (far side, $y_\mathrm{near} < -9.16$~m and
-$x > 36.0$~m), where $y_\mathrm{near}$ denotes the signed lateral distance from
-the goal centre after normalisation to attacking-right coordinates.
+The  area between the central column and the near edge of the penalty area was called 
+front zone, and the area between the central column and the sideline on the other 
+side of the pitch was called edge zone. The area close to the corner taker but 
+oustide of the penalty area was defined as short zone, and the rest was defined 
+as 'Other'. This zone system is used for both delivery classification (SQ2) and 
+player position classification (SQ1). Subsequentally, it will be used to visualise the 
+typical delivery and player positioning patterns of a specific opponent (SQ5).
 
-% \begin{figure}[h]
-%   \centering
-%   \includegraphics[width=0.7\linewidth]{figures/zone_system.pdf}
-%   \caption{Zone system used for delivery and player position classification.
-%            The central column (18.32~m wide) is divided into four depth bands
-%            and three lateral lanes. GA = Goal Area, PA = Penalty Area,
-%            PE = Penalty Edge, PC = Penalty Curve. Numbers 1--3 denote near,
-%            central, and far lateral columns respectively.}
-%   \label{fig:zone_system}
-% \end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{figures/zone_system.pdf}
+  \caption{Zone system used for delivery and player position classification.
+           The central column (GA/PA/PE/PC) is subdivided into three lateral lanes
+           (1: near, 2: central, 3: far). The Front zone defines the near-side area between 
+           central column and edge penalty area, and the Edge zone defines the far-side area between central column and edge penalty area.} 
+  \label{fig:zone_system}
+\end{figure}
 
 \section{SQ1: Defensive Corner Setup Classification}
 \label{sec:sq1}
