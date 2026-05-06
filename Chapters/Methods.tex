@@ -43,7 +43,7 @@ Figure~\ref{fig:pipeline} provides an overview of the analytical pipeline.
 
 All data were provided by SciSports through FC Den Bosch. Two data types were used.
 
-\subsubsection{Event data.}
+\subsubsection{Event data}
 Event data contains one record per on-ball action, including the action type
 (e.g.\ \texttt{CORNER\_CROSSED}, \texttt{CORNER\_SHORT}, \texttt{HEADER},
 \texttt{CLEARANCE}), the player and team involved, the ball's start and end
@@ -55,7 +55,7 @@ within a single possession sequence, enabling reconstruction of what happened
 after every corner kick. Event data is labeled by workers of SciSports, and is available within 
 48 hours of every match in the KeukenKampioenDivisie.
 
-\subsubsection{Tracking data.}
+\subsubsection{Tracking data}
 Tracking data records the $(x, y)$ position of every player and the ball at
 10~Hz (one frame per 100~ms). Player records include a unique player identifier
 and shirt number. Ball records include an additional $z$-coordinate (height in
@@ -132,24 +132,24 @@ and validation.
 Inter-rater reliability is not yet formally assessed, as only one annotator was
 used; this is something that will be done later in the project timeline.
 
-\paragraph{Zone system.}
+\subsubsection{Zone System}
 The pitch area surrounding the goal was divided into zones according to the
 system depicted in Figure~\ref{fig:zone_system}. The logic follows the natural
 landmarks of the pitch. The central column spans the width of the goal area and
-is divided by depth into four bands: the \textbf{Goal Area (GA)} is the most
-dangerous zone directly in front of goal; the \textbf{Penalty Area (PA)} covers
+is divided by depth into four bands: the Goal Area (GA) is the most
+dangerous zone directly in front of goal; the Penalty Area (PA) covers
 the space from the six-yard box to roughly the penalty spot; the
-\textbf{Penalty Edge (PE)} sits at the top of the penalty area; and the
-\textbf{Penalty Curve (PC)} extends to the edge of the D. Each depth band is
-further split into three lateral lanes — near post (1), central (2), and far
-post (3) — giving a total of twelve central zones (e.g.\ GA2, PA3).
+Penalty Edge (PE) sits at the top of the penalty area; and the
+Penalty Curve (PC) extends to the edge of the D. Each depth band is
+further split into three vertical lanes: near post (1), central (2), and far
+post (3). This gives in total twelve central zones.
 
 Outside the central column, four additional zones capture the wider pitch
-context: the \textbf{Front} zone covers the near-side area between the central
+context: the Front zone covers the near-side area between the central
 column and the penalty-area edge (where inswing deliveries often land short);
-the \textbf{Edge} zone mirrors this on the far side; the \textbf{Short} zone
+the Edge zone mirrors this on the far side; the Short zone
 covers the area near the corner flag used for short-corner plays; and
-\textbf{Other} captures everything outside these areas.
+Other captures everything outside these areas.
 
 This zone system is used consistently throughout the analysis: for delivery
 classification (where the ball lands), for player position classification
@@ -167,9 +167,12 @@ D\&V Analyser (SQ5).
 \section{SQ1: Defensive Corner Setup Classification}
 \label{sec:sq1}
 
-The defensive setup of a corner is operationalised as the joint configuration
-of every defending outfield player at the moment of delivery. The pipeline has
-two stages, motivated by the structure of the labels themselves: two of the four
+When a corner is taken, every defending outfield player has a role: some mark
+a specific attacker, others guard an area of the box, one or two may press
+the ball or hold a counter-attacking position. SQ1 aims to automatically
+identify these roles from tracking data and use them to characterise how a
+team defends corners. The pipeline has two stages, motivated by the structure
+of the labels themselves: two of the four
 defensive roles are spatially separable from position alone, while the other two
 require tracking-based behavioural features to disambiguate. SQ1 therefore consists
 of (i) a per-defender role classifier, (ii) a Hungarian assignment that links
