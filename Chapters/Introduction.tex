@@ -32,12 +32,16 @@ a substantial number of goals across a season (in the current premier league sea
 corners have directly contributed to approximately 16\,\% of all non-penalty goals), the 
 corner goals are also often decisive. When a team does score from a
 corner, that goal is the difference between winning or drawing and not in
-roughly three out of four cases \citep{Casal2015}.
+roughly three out of four cases \citep{Casal2015}. However, research has shown that even
+though set pieces acount for 30\% of all goals, teams on average train for only 10 minutes
+per week on set pieces \citep{giovanni_vio_2024}, which suggests that there is a significant 
+gap between the potential value of set pieces, under which corners, and the resources teams
+ allocate to them.
 
 The realisation that corners are a systematically underexploited source of goals
 has driven a structural change in professional club football. Dedicated
-set-piece coaches --- specialists whose responsibility is the design,
-preparation, and analysis of dead-ball situations --- are now found at almost
+set-piece coaches, specialists whose responsibility is the design,
+preparation, and analysis of dead-ball situations, are now found at almost
 every top-flight club. The career trajectory of Nicolas Jover, who began as a
 video analyst at Montpellier, became set-piece coach at Brentford, then
 Manchester City, and eventually Arsenal, shows how seriously clubs have come to
@@ -333,70 +337,61 @@ trajectory (inswing, outswing, or straight), the target zone in the penalty
 area, the number of attackers and defenders in the box, the defensive system
 employed, and the match context \citep{Sarmento2014, Sarmento2025}.
 
-\subsubsection{Frequency, Conversion, and Match Impact}
+\subsubsection{Corner Conversion}
 
-Casal and colleagues \cite{Casal2015} provide the most frequently cited
+Casal et al. \cite{Casal2015} provide the most frequently cited
 quantitative baseline. Analysing 1{,}139 corners from 124 matches at the 2010
 FIFA World Cup, UEFA Euro 2012, and the 2010/11 UEFA Champions League, they
-reported a direct goal-per-corner rate of 2.2\,\%. Crucially, they found that
-76\,\% of those goals were directly responsible for the scoring team winning or
-drawing the match in which they were scored --- a figure that underlines the
-match-decisive weight of corner conversions. Their multivariate analysis
+reported a direct goal-per-corner rate of 2.2\,\%. Their multivariate analysis
 identified three variables as significantly associated with scoring: time of
 match ($p = 0.04$), number of intervening attackers ($p = 0.001$), and the
 degree of offensive organisation ($p = 0.02$). Later work by
 Fern\'andez-Herm\'ogenes, Camerino, and Hileno \cite{FernandezH2021},
 working on 2{,}029 corners from the Spanish La Liga and Segunda Divisi\'on,
-found that only 29.1\,\% of corners generated a shot attempt --- consistent
-with the earlier range of 17--24\,\% shot-per-corner rates reported across
+found that only 29.1\,\% of corners generated a shot attempt which is slighly above 
+the earlier range of 17--24\,\% shot-per-corner rates reported across
 multiple studies and competitions \citep{Borras2005, SainzdeBaranda2012,
-SanchezFlores2012}. Corner kicks occur roughly ten times per match at elite
-level \citep{FernandezH2021}, providing a large base of observations for
-statistical analysis while also highlighting the low per-event conversion
-rate that makes each marginal improvement in targeting so valuable.
+SanchezFlores2012}. A more recent meta-analysis of 21 studies
+ on corner-kick performance \cite{JCSS2025} synthesised these findings and concluded
+  that the average goal-per-corner rate across elite competitions is approximately 
+  2.5\,\%, that the average shot-per-corner rate is approximately 20\,\%, and that 
+  the number of attackers in the box is the most consistent predictor of corner success.
 
 \subsubsection{Delivery Characteristics and Target Zones}
 
-A parallel strand of the literature has focused on \emph{delivery
-characteristics}. Pulling \cite{Pulling2015} and Pulling, Robins, and
+Other studies have focused on delivery
+characteristics. Pulling \cite{Pulling2015} and Pulling, Robins, and
 Rixon \cite{Pulling2013} examined long corners in the English Premier
 League and demonstrated that deliveries into the goal area and the ``critical
 area'' between six and twelve yards from the goal line generate
-disproportionately many shot attempts. This finding directy anticipates the
-zone system deployed in the present thesis (Section~\ref{sec:data}), which
-subdivides the penalty area into depth bands --- Goal Area (GA), Penalty Area
-(PA), Penalty Edge (PE), and Penalty Curve (PC) --- and lateral columns. A
-recent meta-analysis \citep{JCSS2025} synthesised evidence from 21 studies on
-inswinging versus outswinging deliveries and found that outswing corners
-generate marginally more final attempts in domestic leagues, attributing the
-effect to the ball moving \emph{towards} arriving attackers rather than away
-from them. Stafylidis and colleagues \cite{Stafylidis2022, Stafylidis2023}
+disproportionately many shot attempts. The meta-analysis \citep{JCSS2025} 
+synthesised evidence from 21 studies on inswinging versus outswinging deliveries 
+and found that outswing corners generate marginally more final attempts in 
+domestic leagues, attributing the effect to the ball moving wowards arriving attackers 
+rather than away from them. Stafylidis and colleagues \cite{Stafylidis2022, Stafylidis2023}
 reached a similar conclusion but added the qualification that delivery-type
 advantage is attacker-dependent: inswing favours late-arriving runners, outswing
 favours stationary target players. This interaction between delivery type and
 attacker positioning motivates the joint delivery-type / movement-profile
 characterisation in SQ2.
 
-The choice of delivery height --- whether the ball arrives flat and driven,
-at a medium arc, or as a high-looping floated cross --- has received less
-academic attention despite its practical importance. Liu and colleagues
-\cite{Liu2025}, analysing 624 corner-kick goals across the Premier
-League, La Liga, and the Danish Superliga alongside 545 World Cup corners,
-found significant league-level differences in shot-zone distributions and
-inswing-goal proportions, and identified home advantage, inswing delivery,
-non-grouped attacking setups, and non-block defensive formations as factors
-associated with scoring. Their work also illustrates the methodological
-limitation of operating on goal-only samples: by conditioning on goals rather
-than all corners, such studies systematically overestimate the effectiveness of
-configurations that happened to produce goals while underestimating those that
-produced good-but-unconverted chances. The present thesis avoids this by using
-the Corner Threat Score (CTS), which integrates delivery quality (xA) with shot
-quality (xG) across \emph{all} corners, including those without a subsequent
-shot \citep{Lamberts2023}.
+Liu and colleagues \cite{Liu2025} examined 624 corner-kick goals from the Premier League, La Liga, and the Danish Superliga, 
+plus 545 World Cup corners, revealing substantial league-level differences in shot-zone 
+distributions and goal rates. They identified home advantage, delivery type, non-grouped 
+attacking setups, and non-block defensive formations as factors conducive to scoring. 
+Critically, their analysis also exposes a methodological limitation common to goal-focused
+ studies by conditioning on goals rather than all corners. These methods make setups that led to 
+ goals seem more effective than they really are, while underestimating the value of setups 
+ that created high-quality chances that were not converted. This study circumvents this
+bias through the Corner Threat Score (CTS), which combines delivery quality (xA) with shot 
+quality (xG) across \emph{all} corners, including those without subsequent shots \citep{Lamberts2023}, 
+and systematically incorporates delivery height variations into its evaluation framework.
+Because delivery height --- whether the ball arrives flat and driven, at medium height, or 
+as a high-looping float --- remains comparatively under-researched.
 
 \subsubsection{Context, Match Status, and Short Corners}
 
-The notational literature has also catalogued how \emph{context} shapes corner
+Studies have also catalogued how context shapes corner
 tactics. Casal, Losada, Maneiro, and Ard\'a \cite{Casal2017} used CHAID
 decision trees on 902 tournament corners to show that match status systematically
 alters tactical choices: teams trailing in the final thirty minutes concentrate
@@ -406,24 +401,24 @@ L\'opez-Riquelme \cite{DeBaranda2012} documented similar effects in the
 2006 World Cup. Strafford, Smith, North, and Stone \cite{Strafford2019},
 comparing top-six and bottom-six Premier League sides in 2015/16, reported that
 variety of routines did not distinguish the two groups but that execution
-consistency did --- an observation that motivates characterising teams by their
-\emph{distribution} over routine types rather than by the mere presence of any
+consistency did. This observation motivates characterising teams by their
+distribution over routine types rather than by the mere presence of any
 given routine. Page and Robins \cite{PageRobins2012} conducted a
 single-club case study in League One and documented substantial within-season
 variation in corner tactics, suggesting that clubs actively adjust routines to
 opposition, a hypothesis that the per-opponent analysis in SQ5 of this thesis
 is designed to test quantitatively.
 
-Short corners --- in which the ball is played to a nearby teammate rather than
-crossed directly --- account for roughly 18\,\% of all corner kicks
-\citep{Casal2015}, a proportion consistent with the 26\,\% (492 of 1{,}893)
+Short corners are corners in which the ball is played to a nearby teammate rather than
+crossed directly. They account for roughly 18\,\% of all corner kicks
+\citep{Casal2015}, a proportion slightly lower than the 26\,\% (492 of 1{,}893)
 observed in the Dutch Eerste Divisie dataset used in this thesis. Although their
 direct goal-conversion rate is lower than for crossed corners, short corners can
 serve strategic functions: drawing defenders out of the penalty area before a
 subsequent cross, exploiting a numerically weak near-side guard, or recycling
 possession when the set-piece structure is unfavourable. Existing academic
 literature has characterised short corners primarily at the aggregate level
-\citep{Sarmento2025}; the present thesis develops a detailed pass-count and
+\citep{Sarmento2025}; this study develops a detailed pass-count and
 outcome-based taxonomy (Section~\ref{sec:sq2_short}) that permits more granular
 comparison.
 
@@ -431,21 +426,20 @@ comparison.
 
 Two systematic reviews published in 2025 \citep{Sarmento2025, MDPI2025} have
 identified persistent methodological limitations in the notational corner-kick
-literature. First, \emph{zone inconsistency}: different studies divide the
+literature. The first one is zone inconsistency: different studies divide the
 penalty area into incompatible spatial grids, making cross-study synthesis
-unreliable. Second, \emph{outcome operationalisation}: ``corner success'' is
+unreliable. The second limitation is outcome operationalisation: corner success is
 variously defined as a shot, a shot on target, a goal, or the more recent
-expected-goals metric, with no consensus standard. Third, \emph{contextual
-underdetermination}: most studies report marginal frequencies across categories
+expected-goals metric, with no consensus standard. Third, contextual
+underdetermination: most studies report marginal frequencies across categories
 without modelling interactions between delivery type, defensive structure, match
-status, and player identity. Fourth, and most consequentially for the present
-thesis: notational analysis operates on \emph{discrete, human-assigned labels}
-and therefore cannot access the continuous spatiotemporal information --- player
-velocities, mutual distances, movement correlations --- that tracking data
-make available. Manual labels compress rich spatial configurations into single
-categorical cells, introducing inter-observer variability and losing the very
-information that distinguishes a well-executed zonal block from a poorly
-coordinated one.
+status, and player identity. Notational analysis also operates on discrete,
+human-assigned labels and therefore cannot access the continuous spatiotemporal
+information such as player velocities, mutual distances, movement correlations
+that tracking data make available. These simple manual labels compress rich
+spatial configurations into single categorical cells, introducing inter-observer
+variability and losing the very information that distinguishes a well-executed
+zonal block from a poorly coordinated one.
 
 % ------------------------------------------------------------
 \subsection{Defensive and Offensive Set-Piece Systems}
@@ -453,7 +447,7 @@ coordinated one.
 % ------------------------------------------------------------
 
 Parallel to the notational academic literature, a body of coaching-science
-work focuses on the \emph{systems} teams use to organise themselves at corners.
+work focuses on the systems teams use to organise themselves at corners.
 This literature shares methods with the notational tradition but is oriented
 toward design rather than description: rather than asking which variables predict
 scoring, it asks how teams should organise and what the trade-offs between
@@ -462,19 +456,19 @@ organisational choices are.
 \subsubsection{The Zonal--Man--Hybrid Taxonomy}
 
 The foundational distinction in defensive corner organisation is between
-\emph{zonal marking} and \emph{man-to-man marking}. In a zonal system, each
+zonal marking and man-to-man marking. In a zonal system, each
 defender is assigned a specific area of the penalty box and is responsible for
 any ball that enters that area, regardless of which attacker attacks it. In a
 man-marking system, each defender is paired with a specific attacker and follows
 that attacker's movement until delivery. Pure systems of either type are rare in
-elite football: the \emph{hybrid} system, which assigns some defenders to zones
+elite football: the hybrid system, which assigns some defenders to zones
 and others to individual attackers, has become the dominant structure at
 international and domestic elite level \citep{FIFA2023, MBP2025}.
 
 FIFA's Football Performance Insights report from the 2022 World Cup provides
 the most systematic recent taxonomy \citep{FIFA2023}. A defensive setup is
-classified as predominantly \emph{zonal} when four or more players are assigned
-zonal responsibilities, as predominantly \emph{man} when more than 70\,\% of
+classified as predominantly zonal when four or more players are assigned
+zonal responsibilities, as predominantly man when more than 70\,\% of
 the in-box defenders are marking individually, and as \emph{hybrid} otherwise.
 Applying this taxonomy to World Cup data, the report found that 26 of 32 teams
 brought all ten outfield players back to defend corners, that hybrid setups
@@ -502,12 +496,12 @@ across studies makes precise quantification difficult.
 
 The coaching literature is explicit about the trade-offs. Zonal marking
 concentrates defenders between the ball and goal, simplifies communication, and
-requires defenders to \emph{attack the ball} rather than track a moving player;
+requires defenders to attack the ball rather than track a moving player;
 but it is vulnerable to deliberate blocking runs that occupy a zone without
 attacking the ball, and to deliveries aimed precisely between two zonal
 defenders. Man-marking eliminates the problem of uncontested runners and allows
 defenders' physical attributes to be matched against specific threats, but is
-\emph{reactive} by construction: a man-marker who watches his attacker rather
+reactive by construction: a man-marker who watches his attacker rather
 than the ball is perpetually a step behind on delivery \citep{TacticalAnalyst2016}.
 Individual defensive errors propagate into goals because there is no positional
 safety net. The hybrid compromise reduces the severity of both failure modes but
