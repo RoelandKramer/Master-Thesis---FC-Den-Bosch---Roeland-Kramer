@@ -71,9 +71,12 @@ video feed, and is available within 48 hours of every match in the KeukenKampioe
 \label{sec:dataset_composition}
 
 Data used in this study spans the 2025–2026 Dutch Eerste Divisie season, covering 281 unique matches
-from 20 clubs. All 1,893 corner kicks that appear in the event data were extracted,
-of which all 1{,}893 are synchronised with tracking data. These consist of 1{,}401
-direct (crossed) corners and 492 short corners.
+from 20 clubs. Across all 309 event files provided by SciSports, 4{,}985 corner events were identified.
+Of these, 2{,}880 are located in the 291 matches that also have a position (tracking) file and carry
+the \texttt{synced\,=\,True} flag, indicating reliable event-to-tracking alignment. After restricting
+to the Eerste Divisie regular-season scope and applying minimum tracking-coverage requirements,
+\textbf{1{,}893 corners from 281 matches} were retained for the analysis.
+These consist of 1{,}401 direct (crossed) corners and 492 short corners.
 Table~\ref{tab:dataset_overview} summarises the dataset.
 
 \begin{table}[h]
@@ -86,17 +89,21 @@ Table~\ref{tab:dataset_overview} summarises the dataset.
     \midrule
     Matches & 281 \\
     Clubs & 20 \\
-    Total corner kicks & 1,893 \\
+    Raw corner events (all files) & 4,985 \\
+    Corners with synced tracking & 2,880 \\
+    Corners retained for analysis & 1,893 \\
     \quad Direct (crossed) & 1,401 \\
     \quad Short & 492 \\
-    Synced with tracking & 1,893 (100\%) \\
     Manually labelled corners & 86 \\
-    \quad Labelled attacker rows & 389 \\
-    \quad Labelled defender rows & 509 \\
+    \quad Labelled attacker rows & 477 \\
+    \quad Labelled defender rows & 477 \\
     Tracking frame rate & 10 Hz \\
     \bottomrule
   \end{tabular}
 \end{table}
+
+\subsection{Manual Labelling}
+\label{sec:manual_labelling}
 
 \subsection{Manual Labelling}
 \label{sec:manual_labelling}
@@ -106,7 +113,7 @@ by club and corner type (direct vs.\ short) to ensure representativeness. Of the
 86 were successfully labeled before the analysis phase; the remaining 15 were not due to 
 bad camera angles on the videos, which made it impossible to reliably annotate the required variables. 
 The 86 labelled corners are a subset of the 1,893 corners that were synced and therefore 
-kept. For each corner, the following were annotated:
+kept. For each corner, the following was manually annotated based on video material (3 different angles:
 \begin{itemize}
   \item \textbf{Delivery type}: swing direction and target zone (see
         Section~\ref{sec:sq2_delivery});
@@ -120,7 +127,7 @@ kept. For each corner, the following were annotated:
         the jersey number of the specific attacker being tracked.
 \end{itemize}
 Labels were recorded in a structured spreadsheet
-(\texttt{labeling\_sheet\_v2.csv}) and used as ground truth for model training
+ and used as ground truth for model training
 and validation.
 Inter-rater reliability is not yet formally assessed, as only one annotator was
 used; this is something that will be done later in the project timeline.
