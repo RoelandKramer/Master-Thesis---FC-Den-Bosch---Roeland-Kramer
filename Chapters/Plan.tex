@@ -1,0 +1,151 @@
+% ============================================================
+%  PLAN FOR THE REST OF THE THESIS
+%  "Offensive Corner Tactics vs. Defensive Structures:
+%   An Automated Classification and Effectiveness Analysis"
+% ============================================================
+
+\chapter{Plan for the Rest of the Thesis}
+\label{ch:plan}
+
+This chapter outlines the concrete next steps that will be completed
+before the thesis is submitted. The work is sequenced such that the
+foundational models (SQ1 and SQ2) are fully validated and applied
+before moving into the inferential analyses of SQ3 and SQ4, and before
+the D\&V Analyser is populated with the final results.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Inter-rater Reliability Testing}
+\label{sec:plan_interrater}
+
+Before the manual labels used to train and evaluate the SQ1 and SQ2
+models are considered final, formal inter-rater reliability testing will
+be conducted. A second rater will independently label a stratified
+sample of corners from the 67-corner test set, covering all major role
+classes (ZONAL, MAN, TARGET, DECOY, BLOCK\_GK, BLOCK\_DEF). Agreement
+will be measured using Cohen's Kappa. The purpose is twofold: to
+quantify the inherent ambiguity in role assignment (providing a human
+ceiling for classifier accuracy) and to identify which role categories
+are most susceptible to label noise so that the model's reported
+accuracy figures can be interpreted appropriately.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Expanding the Labelled Test Set}
+\label{sec:plan_labelling}
+
+The current test set of 67 corners is sufficient for a proof-of-concept
+evaluation but is small for per-class analysis, particularly for the
+rare roles (BLOCK\_GK, 13 examples; BLOCK\_DEF, 14 examples). Additional
+labelling of 30--50 corners will be carried out, prioritising corners
+from matches that contain known block-based or highly dynamic tactics
+(identified via the automated pre-classifier). Expanding the test set
+will directly improve the reliability of per-class accuracy estimates
+and will provide more training data for the augmentation pipeline.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Finalising SQ1 and SQ2 Models}
+\label{sec:plan_models}
+
+\subsection*{SQ1 — Defensive setup classifier}
+
+The SQ1 model will be evaluated against the expanded test set and any
+remaining per-class weaknesses addressed. Once the accuracy meets the
+acceptance threshold, the classifier will be applied to all 1{,}893
+corners in the full dataset to generate defensive setup predictions at
+scale.
+
+\subsection*{SQ2 — Attacker role and strategy classifier}
+
+The attacker role classifier (TARGET / DECOY / STATIC / SECOND\_BALL /
+BLOCK\_GK / BLOCK\_DEF) is currently under active development. Two
+improvements are being finalised:
+\begin{enumerate}
+  \item \textbf{Data augmentation} — y-coordinate flipping (corners
+        are pitch-symmetric) and SMOTE over-sampling within each
+        LOCO-CV fold to address the severe class imbalance in
+        BLOCK\_GK and BLOCK\_DEF. Preliminary results from this scheme
+        are expected to improve overall 6-class accuracy above 80\%.
+  \item \textbf{Running-line integration} — a geometric running-line
+        classifier assigns each attacker to a zone trajectory
+        (NEAR\_POST, FAR\_POST, CENTRAL, CROSSING, etc.). These labels
+        will be combined with the role predictions to populate the
+        full taxonomy (Tiers C--E of the 21-category scheme), enabling
+        the more granular strategic categories (e.g.\ NEAR\_POST\_TARGET,
+        SCISSORS\_NF) to be assigned.
+\end{enumerate}
+
+Once both components are finalised, the model will be applied to all
+1{,}401 direct corners to produce a full role-and-strategy classification
+for every corner in the dataset.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{SQ3 — Effectiveness of Offensive Strategies Against Defensive Structures}
+\label{sec:plan_sq3}
+
+With the full-dataset role, strategy, and defensive-setup predictions
+in hand, SQ3 can be addressed. The analysis will examine interactions
+between offensive corner strategy (as classified by SQ2) and defensive
+structure (as classified by SQ1) as predictors of corner effectiveness
+(Corner Threat Score, xA, shot generation). Concretely:
+
+\begin{itemize}
+  \item Logistic regression on shot generation and OLS regression on
+        CTS with delivery type, ball height, dominant run-line category,
+        and defensive setup type as predictors.
+  \item Interaction terms between offensive strategy categories (e.g.\
+        BLOCK\_GK\_WAVE, MULTI\_TARGET\_RUSH) and defensive structure
+        (ZONAL vs.\ MAN) to test whether specific attacking patterns are
+        differentially effective against specific defences.
+  \item Robustness checks: hurdle model (separate shot-generation and
+        conditional-CTS components) and per-team fixed effects to
+        control for opponent quality.
+\end{itemize}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{SQ4 — Individual Player Quality}
+\label{sec:plan_sq4}
+
+SQ4 will analyse individual taker and attacker quality while controlling
+for the tactical and structural context identified in SQ1--SQ3. The
+model for SQ4 will include:
+
+\begin{itemize}
+  \item A \textbf{taker quality metric} (TakerCTS) based on the
+        leave-one-match-out residual after controlling for delivery
+        zone, ball height, and the opposing defensive structure. This
+        isolates individual contribution from tactical context.
+  \item An analysis of \textbf{attacker quality}, identifying which
+        players are disproportionately often assigned the TARGET or
+        BLOCK\_GK role and how their presence in the lineup affects
+        corner threat.
+  \item A test of whether individual quality effects survive when
+        controlling for tactics and defensive structure (SQ3 covariates),
+        to address the question of whether ``it's the player or the
+        plan'' that drives corner effectiveness.
+\end{itemize}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Data \& Video Analyser — Final Development}
+\label{sec:plan_dv}
+
+The D\&V Analyser will be extended in two directions once the research
+results are available:
+
+\begin{enumerate}
+  \item \textbf{Research results integration} — The analytical outputs
+        of SQ1--SQ4 (delivery effectiveness rankings, team defensive
+        profiles, attacker role predictions, strategy category per
+        corner) will be surfaced inside the platform. Coaching staff
+        will be able to query, for example, ``which delivery type is
+        most effective when this opponent uses zonal marking?'' and
+        navigate directly to video examples.
+  \item \textbf{FC Den Bosch operational usage} — The platform will be
+        prepared for live use by the FC Den Bosch performance analysis
+        team for the remainder of the season. This includes adding their
+        own match data as it becomes available, ensuring that the
+        system's opponent profiling and video-retrieval components are
+        robust and user-friendly for non-technical staff.
+\end{enumerate}
+
+The D\&V Analyser thus serves both as a vehicle for presenting and
+validating the thesis findings and as a practical deliverable for the
+club.

@@ -1,385 +1,352 @@
 % ============================================================
-%  RESULTS — Master Thesis
+%  PRELIMINARY RESULTS — Master Thesis
 %  "Offensive Corner Tactics vs. Defensive Structures:
 %   An Automated Classification and Effectiveness Analysis"
 % ============================================================
 
-\chapter{Results}
+\chapter{Preliminary Results}
 \label{ch:results}
 
-This chapter reports the empirical findings produced by the analytical
-pipeline specified in Chapter~\ref{sec:methods}. Findings are presented in
-the order of the sub-questions: SQ1 (defensive setup classification),
-SQ2 (offensive pattern classification), SQ3 (effectiveness of offensive
-strategies against defensive structures), and SQ4 (individual player
-qualities). The applied integration of these results into the Data \&
-Video Analyser (SQ5) is illustrated through a single worked example at
-the end of the chapter; the design and data contract of the integration
-itself was specified in Section~\ref{sec:sq5_dv_analyser}.
-
-Throughout, results are presented with explicit attention to sample size
-and to the data-coverage limitations identified in
-Chapter~\ref{sec:methods}. A finding based on a small cell or on the
-86-corner manually labelled subset is flagged as such where it appears,
-and is interpreted only as exploratory unless supported by the full
-1{,}401-corner dataset.
+This chapter presents the preliminary empirical findings produced by the
+analytical pipeline described in Chapter~\ref{sec:methods}. Because the
+models for SQ1 and SQ2 are still being refined, all figures reported here
+are subject to change. Results are presented per sub-question; SQ3 and SQ4
+have no preliminary results at this stage, and SQ5 is illustrated through
+the current state of the Data \& Video Analyser platform.
 
 \section{SQ1: Defensive Setup Classification}
 \label{sec:results_sq1}
 
-\subsection{Individual defender role classification}
+\subsection{Role distribution in the labelled test set}
+
+Manual labelling was performed on 67 corner kicks, covering both
+attacking and defending players. For the defensive side, a total of
+730 defender-event rows were labelled across these corners. After
+normalising spelling variants, the role distribution is as follows:
+
+\begin{table}[h]
+  \centering
+  \caption{Defensive role distribution in the manually labelled test
+           set (67 corners, 730 defender rows).}
+  \label{tab:sq1_role_dist}
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{Defensive Role} & \textbf{Count} & \textbf{\%} \\
+    \midrule
+    ZONAL    & 577 & 79\% \\
+    MAN      &  90 & 12\% \\
+    SHORT    &  46 &  6\% \\
+    COUNTER  &  17 &  2\% \\
+    \midrule
+    Total    & 730 & 100\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Zonal marking is by far the dominant defensive structure in the Eerste
+Divisie 2025--26 dataset, appearing in roughly four out of five
+defensive interactions. Man-marking is observed in 12\% of cases,
+while short-corner press assignments (SHORT) and counter-pressing
+(COUNTER) together account for the remaining 8\%. This heavy class
+imbalance is an important constraint on classifier design; models that
+predict ZONAL for all rows would already achieve approximately 79\%
+row-level accuracy.
+
+\subsection{Classifier accuracy per role}
 
 The ensemble classifier (Random Forest, Extra Trees, and Gradient
-Boosting, averaged) attained a leave-one-match-out role accuracy of
-93\% across the 509 manually labelled defender rows. Marking-assignment
-accuracy — the share of man-markers correctly matched to their assigned
-attacker by the Hungarian step — was approximately 80\%. These figures
-are reported as supplementary; the classifier itself was developed as
-part of a companion study and the present thesis treats its outputs as
-inputs to SQ3 and SQ5.
+Boosting, averaged) trained on tracking-derived pair-wise features
+attained a leave-one-corner-out (LOCO-CV) overall accuracy of
+approximately \textbf{93\%} on the labelled defender rows. Because the
+ZONAL class dominates the dataset, per-class performance is the more
+informative measure:
 
-\subsection{Team-level defensive profiles}
+\begin{itemize}
+  \item \textbf{ZONAL}: high precision and recall; the large sample
+        supports reliable feature learning.
+  \item \textbf{MAN}: correctly identified in the majority of cases;
+        the key discriminating signal is the persistent small distance
+        to a specific attacker throughout the pre-delivery window
+        combined with correlated movement.
+  \item \textbf{SHORT}: well-separated by the positional rule component
+        of the classifier (defender moves toward the ball carrier rather
+        than into the penalty area).
+  \item \textbf{COUNTER}: the smallest class (17 rows); performance is
+        more variable and is treated as indicative only.
+\end{itemize}
 
-For each club with at least 10 corners as the defending team, a
-defensive profile was computed as the empirical distribution over the
-defensive strategy types defined in Section~\ref{sec:sq1_team}. These
-profiles are used directly by the D\&V Analyser corners module
-(Section~\ref{sec:sq5_dv_analyser}) and are reported per team in
-Appendix~\ref{app:team_profiles}.
+The Hungarian matching step, which assigns man-markers to their
+specific attacker counterpart, attained approximately 80\% assignment
+accuracy on the labelled subset, measured as the share of man-markers
+whose assigned attacker matches the manual label.
 
+\paragraph{Next steps for SQ1.}
+The priority is to perform formal inter-rater reliability testing on
+the manual labels before reporting final accuracy figures. Labelling
+more corners — particularly corners with mixed defensive structures —
+will further strengthen the test set. See
+Chapter~\ref{ch:plan} for the full work plan.
+
+% ────────────────────────────────────────────────────────────────────────────
 \section{SQ2: Offensive Pattern Classification}
 \label{sec:results_sq2}
 
-\subsection{Delivery type and validation}
+\subsection{Delivery type and ball height}
 
-Of 1{,}401 direct corners, the swing direction classifier agreed with
-the manual labels on 92\% of cases, with the remaining disagreements
-concentrated on corners taken with the inside of the foot from an
-ambiguous angle. The full delivery-zone label (e.g.\ \texttt{GA2})
-agreed with manual labels on 64\% of the 51 corners for which a manual
-label was available; the depth band only on 74\%; and the lateral column
-only on 76\%. As discussed in Section~\ref{sec:sq2_delivery}, the bulk
-of the disagreement on the full label is attributable to the SciSports
-event data recording the ball's first-contact position rather than the
-ball's intended landing zone; tracking-based alternatives evaluated
-during pipeline development did not exceed 26\% full-zone agreement.
-The depth band, which is the primary delivery dimension carried into
-the inferential analysis in Section~\ref{sec:sq3_analysis}, is therefore
-considered acceptably reliable; the full zone label is retained for
-descriptive purposes and for the labelled subset only.
+Of the 1{,}401 direct corners in the dataset, the swing and zone
+classification yields the following delivery-type breakdown:
+
+\begin{table}[h]
+  \centering
+  \caption{Delivery type distribution across 1{,}401 direct corners.}
+  \label{tab:sq2_delivery_dist}
+  \begin{tabular}{lrrl}
+    \toprule
+    \textbf{Delivery type} & \textbf{$n$} & \textbf{\%} &
+    \textbf{Mean peak height (m)} \\
+    \midrule
+    IN\_CENTRAL  & 527 & 38\% & 5.75 \\
+    IN\_NEAR     & 285 & 20\% & 5.01 \\
+    OUT\_CENTRAL & 249 & 18\% & 5.73 \\
+    OUT\_NEAR    & 160 & 11\% & 4.55 \\
+    IN\_FAR      & 124 &  9\% & 8.07 \\
+    OUT\_FAR     &  56 &  4\% & 7.50 \\
+    \midrule
+    Total        & 1{,}401 & 100\% & 5.73 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Inswing deliveries into the central zone (IN\_CENTRAL) are by far the
+most common, comprising 38\% of all direct corners. Far-post deliveries
+(IN\_FAR, OUT\_FAR) are taken at notably higher trajectories (7.5--8.1 m
+peak) compared with near-post deliveries (4.5--5.0 m peak), consistent
+with the geometry of delivery angles from the corner flag.
+
+Across the full dataset the dominant ball flight categories are:
+\textbf{MEDIUM} (3--8 m peak, $n = 732$, 52\%),
+\textbf{DRIVEN} ($<$3 m, $n = 417$, 30\%),
+and \textbf{FLOATED} ($>$8 m, $n = 252$, 18\%).
+Driven deliveries are most common among near-post corners, while far-post
+deliveries are more often floated.
 
 \subsection{Short-corner classification}
 
-The short-corner classifier achieved 81\% exact-label agreement against
-the 21 manually labelled short corners, with result accuracy
-(cross/shot/ballloss) of 86\% and player-count accuracy of 86\%. The
-remaining mismatches concern edge cases in which the SciSports event
-sequence boundary did not coincide with the tactical end of the short
-play (e.g.\ a cross blocked into a defensive clearance that opens a new
-sequence). The classifier was applied to all 492 short corners and the
-resulting label distribution is reported in
-Appendix~\ref{app:short_distribution}.
-
-\subsection{Running lines}
-
-The geometric running-line classifier yielded 99.5\% leave-one-corner-out
-accuracy on the labelled subset; this is unsurprising given that the
-labels themselves are derived from zone transitions, and it is reported
-mainly as a sanity check that the rule-based implementation behaves as
-intended. The Random Forest attacker-role classifier (TARGET, DECOY,
-BLOCK\_GK, BLOCK\_DEF, SECOND\_BALL, STATIC) trained on the same labels
-attained 63\% leave-one-corner-out accuracy. As discussed in
-Section~\ref{sec:sq2_runs}, the ceiling on this task reflects the fact
-that the tactical labels TARGET and DECOY encode intent rather than
-observable geometry; the role classifier is therefore treated as
-supplementary and is not relied on as a primary input to SQ3.
-
-\paragraph{Tracking-coverage limitation.}
-For 1{,}067 of the 1{,}401 direct corners (76\%), the dominant
-running-line label is \texttt{UNKNOWN} — that is, the corner does not
-have sufficient tracking coverage in the 3-second pre-delivery window to
-classify enough attacking players. This is a structural property of the
-dataset rather than a model failure: the SciSports tracking files do not
-uniformly cover the attacking penalty area before kick-off in every
-match. As a consequence, all running-line analyses in
-Section~\ref{sec:results_sq3} are reported on the 334-corner subset with
-adequate coverage. Comparisons across this subset cannot be assumed
-representative of the full population, and findings based on dominant
-running-line are flagged as exploratory throughout.
-
-\section{SQ3: Effectiveness of Offensive Strategies}
-\label{sec:results_sq3}
-
-\subsection{Headline statistics}
-Across 1{,}401 direct corners, the mean Corner Threat Score is 0.0175
-($\overline{\mathrm{xA}} = 0.018$; $\overline{\mathrm{xG}} = 0.040$),
-and 347 corners (24.8\%) generate at least one shot in the corner
-sequence. The remaining 1{,}054 corners (75.2\%) contribute CTS = 0 by
-construction. As discussed in Section~\ref{sec:sq3_outcome}, this
-implies that aggregate CTS is in practice closely tracked by the
-shot-generation rate; the two outcomes are reported jointly throughout
-this section, and where they disagree, this is noted explicitly.
-
-\subsection{Effectiveness by delivery type}
-\label{sec:results_delivery}
-
-Table~\ref{tab:results_cts_by_delivery} reports mean CTS, mean xA,
-mean sequence xG, and the shot-generation rate by delivery type, for all
-delivery types with $n \geq 10$ direct corners. Three patterns are
-robust to the specific outcome chosen.
-
-First, deliveries into the central two columns of the goal area and
-penalty area (\texttt{GA2}, \texttt{GA3}, \texttt{PA2}, \texttt{PA3}) are
-substantially more threatening than deliveries to the near-post column
-(\texttt{GA1}, \texttt{PA1}) at the same depth, both on CTS and on the
-shot-generation rate. Inswing into the central penalty area
-(\texttt{IN\_PA3}) is the highest-CTS category in the table (0.033,
-shot-rate 39\%), but multiple central deliveries cluster at similar
-levels and the ranking among them is within the noise that small-cell
-sampling allows.
-
-Second, deliveries to the outer zones (\texttt{FRONT}, \texttt{EDGE},
-\texttt{OUT}) carry essentially no threat in this dataset, with CTS
-below 0.005 across all such categories. The \texttt{IN\_FRONT} category
-is particularly weak: of 84 such corners, only three (3.6\%) generate a
-shot. This is consistent with the description of these zones as
-unintended outcomes — the ball was either over-hit or cleared on first
-contact — rather than as deliberately targeted areas.
-
-Third, the swing-only contrast is small. In-swing corners average
-CTS = 0.018; out-swing average CTS = 0.017. Once delivery zone is
-controlled for in the regression in Section~\ref{sec:results_regression},
-the marginal effect of swing alone is not statistically distinguishable
-from zero.
+Of the 1{,}893 total corners, 492 (26\%) are classified as short corners.
+The automated sequence classifier assigns each short corner to one of
+four categories based on the number of passes and final action:
 
 \begin{table}[h]
   \centering
-  \caption{Effectiveness by delivery type, direct corners with $n \geq 10$.
-           CTS = Corner Threat Score; SR = shot-generation rate. Sorted by
-           mean CTS. Cells with $n < 30$ are flagged ($\dagger$) as
-           descriptive only.}
-  \label{tab:results_cts_by_delivery}
-  \begin{tabular}{lrrrrr}
-    \toprule
-    \textbf{Delivery type} & $n$ & \textbf{CTS} & \textbf{xA} & \textbf{xG} & \textbf{SR} \\
-    \midrule
-    \texttt{IN\_PA3}    & 51   & 0.033 & 0.033 & 0.082 & 0.39 \\
-    \texttt{OUT\_GA2}$^{\dagger}$  & 33   & 0.032 & 0.027 & 0.068 & 0.27 \\
-    \texttt{IN\_GA2}    & 204  & 0.029 & 0.032 & 0.063 & 0.18 \\
-    \texttt{OUT\_GA3}$^{\dagger}$  & 11   & 0.027 & 0.024 & 0.077 & 0.64 \\
-    \texttt{OUT\_PA2}   & 112  & 0.027 & 0.022 & 0.055 & 0.40 \\
-    \texttt{IN\_GA3}    & 93   & 0.026 & 0.030 & 0.044 & 0.29 \\
-    \texttt{IN\_PA2}    & 102  & 0.022 & 0.025 & 0.042 & 0.34 \\
-    \texttt{OUT\_PA3}   & 38   & 0.022 & 0.027 & 0.050 & 0.50 \\
-    \texttt{OUT\_PE2}$^{\dagger}$  & 16   & 0.020 & 0.018 & 0.104 & 0.50 \\
-    \texttt{OUT\_PA1}   & 100  & 0.016 & 0.013 & 0.043 & 0.30 \\
-    \texttt{IN\_GA1}    & 231  & 0.015 & 0.013 & 0.030 & 0.19 \\
-    \texttt{IN\_PA1}    & 64   & 0.013 & 0.018 & 0.038 & 0.27 \\
-    \texttt{IN\_EDGE}   & 50   & 0.004 & 0.008 & 0.019 & 0.20 \\
-    \texttt{OUT\_EDGE}$^{\dagger}$ & 17   & 0.004 & 0.004 & 0.017 & 0.29 \\
-    \texttt{OUT\_GA1}   & 68   & 0.004 & 0.005 & 0.023 & 0.22 \\
-    \texttt{OUT\_FRONT} & 41   & 0.002 & 0.002 & 0.014 & 0.15 \\
-    \texttt{IN\_FRONT}  & 84   & 0.000 & 0.000 & 0.002 & 0.04 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Effectiveness by ball flight}
-
-Among the 1{,}401 direct corners, ball-flight categories partition as
-979 \texttt{MEDIUM} (3–8\,m peak), 250 \texttt{FLOATED} ($>$8\,m),
-150 \texttt{LOW} (0.5–3\,m) and 22 \texttt{GROUND} ($\leq$0.5\,m).
-Mean CTS is highest in the MEDIUM band (0.021) and decreases
-monotonically with deviation from this band: LOW 0.013,
-FLOATED 0.009, GROUND 0.001. The same ordering holds for shot
-generation. The GROUND result is essentially descriptive — only 22
-corners — and chiefly captures cutbacks and mishit deliveries. The
-substantive contrast is between MEDIUM and FLOATED, where the larger
-sample sizes support the inference that flatter, faster deliveries are
-more difficult to defend than high, hanging crosses in this league.
-
-\subsection{Logistic and OLS regressions}
-\label{sec:results_regression}
-
-The regression results corresponding to Equation~\ref{eq:logit} and
-the OLS analogue on CTS are reported in
-Table~\ref{tab:results_regression}. The hurdle-model robustness check
-(logistic shot-generation component combined with conditional-CTS
-linear component) yields the same sign on every coefficient that is
-significant in the OLS specification; substantive conclusions are
-therefore drawn from the OLS estimates, with the hurdle estimates
-referenced for interpretation only.
-
-% TODO: Insert regression table from output/sq3_regression.csv
-\begin{table}[h]
-  \centering
-  \caption{Logistic regression on shot generation and OLS regression on
-           CTS (placeholder — table to be inserted from
-           \texttt{sq3\_regression.csv} once the regression is run).}
-  \label{tab:results_regression}
+  \caption{Short corner type distribution ($n = 492$).}
+  \label{tab:sq2_short}
   \begin{tabular}{lrr}
     \toprule
-    \textbf{Predictor} & \textbf{Logistic (log-odds)} & \textbf{OLS (CTS)} \\
+    \textbf{Short type} & \textbf{$n$} & \textbf{\%} \\
     \midrule
-    \multicolumn{3}{c}{\textit{To be filled in.}} \\
+    SHORT\_1PASS    & 206 & 42\% \\
+    SHORT\_RECYCLE  & 129 & 26\% \\
+    SHORT\_SHOT     & 113 & 23\% \\
+    SHORT\_2PASS    &  44 &  9\% \\
+    \midrule
+    Total           & 492 & 100\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\subsection{Running-line and role analyses (exploratory)}
-\label{sec:results_runs}
+The most common short-corner pattern is a one-pass play followed by a
+cross into the box (SHORT\_1PASS), which accounts for 42\% of all short
+corners. Recycled short corners (SHORT\_RECYCLE) — where the team
+retains possession but does not immediately cross — make up 26\%. Short
+plays that directly result in a shot are less common (23\%) but
+tactically significant. On a manually labelled subset of 21 short
+corners, the classifier achieved 81\% exact-label agreement, 86\% result
+accuracy (cross / shot / ball loss), and 86\% player-count accuracy.
 
-The analyses in this subsection are reported as exploratory. They are
-based either on the 334-corner subset with full tracking coverage
-(running lines) or on the 86-corner manually labelled subset (tactical
-roles). For both, the sample size of individual cells is small enough
-that selecting the highest-CTS bucket post hoc and reporting it as a
-finding would be misleading; the patterns below are reported in full,
-and the strongest claim made for any of them is that they motivate
-further work, not that they are inferentially established.
+\subsection{Attacker role classifier accuracy}
+\label{sec:results_sq2_roles}
 
-\paragraph{Dominant running line.}
-On the 334-corner subset, dominant-central setups have a higher mean
-CTS (0.034, $n = 13$) than dominant-static setups (0.013, $n = 125$);
-near-post-dominated setups have the lowest (0.003, $n = 27$). The
-$n = 13$ in the central category is too small to interpret in isolation,
-but the qualitative pattern — central runs associated with higher
-threat, near-post runs associated with lower threat in this subset —
-is consistent with a reading in which near-post runners function
-predominantly as blockers rather than primary receivers. This reading
-is hypothesised, not tested, in the present thesis.
-
-\paragraph{Tactical roles (86 labelled corners).}
-Within the labelled subset, corners that include a \texttt{BLOCK\_GK}
-player (screens the goalkeeper, $n = 14$) have a higher mean CTS than
-those that do not (0.019 vs.\ 0.014). Corners that include a
-\texttt{BLOCK\_DEF} player ($n = 11$) have a lower mean CTS
-(0.003 vs.\ 0.016 in the rest of the labelled subset). Both differences
-fall well within the sampling uncertainty implied by the cell sizes,
-and both are reported only because the underlying tactical hypothesis
-(GK-blockers create shooting lanes; defender-blockers indicate a
-specific game state) is theoretically motivated; the present sample
-does not adjudicate between the hypotheses and the null.
-
-\paragraph{Defensive strategy.}
-In the labelled subset, corners defended with a predominantly zonal
-structure ($n = 37$) have a mean CTS of 0.020 against 0.000 for the
-predominantly man-marking subset ($n = 6$). This contrast is
-uninterpretable from the labelled sample alone: $n = 6$ is too small to
-support comparison, and the matching of defensive strategy to opponent
-quality is an unmeasured confound. The full-dataset analogue, which
-applies the SQ1 classifier to the 1{,}401-corner dataset and is
-reported in Section~\ref{sec:results_regression}, is the inferential
-estimate of this contrast.
-
-\section{SQ4: Individual Player Qualities}
-\label{sec:results_sq4}
-
-\subsection{Corner taker quality}
-
-47 corner takers in the dataset took at least 10 direct corners.
-Table~\ref{tab:results_taker_top} reports the top of the TakerCTS
-ranking; the full ranking is provided in Appendix~\ref{app:taker_full}.
-The top-ranked taker (Naïm Matoug, $n = 11$) carries the volatility of
-a small sample, but the spread across the population — TakerCTS values
-from 0.063 at the top to below 0.005 at the bottom — is large enough
-that a separation between consistently dangerous and consistently
-benign takers is supported by the data.
+The attacker role classifier was trained and evaluated on 587 manually
+labelled attacker rows from 67 corners, using leave-one-corner-out
+cross-validation (LOCO-CV). The labelled role distribution reflects
+strong class imbalance:
 
 \begin{table}[h]
   \centering
-  \caption{Top 10 corner takers by TakerCTS ($n \geq 10$ direct
-           corners).}
-  \label{tab:results_taker_top}
-  \begin{tabular}{lrrrr}
+  \caption{Attacker role distribution in the manually labelled test set
+           (67 corners, 587 attacker rows after feature matching).}
+  \label{tab:sq2_role_dist}
+  \begin{tabular}{lrr}
     \toprule
-    \textbf{Taker} & $n$ & \textbf{TakerCTS} & \textbf{$\overline{\mathrm{xA}}$} & \textbf{$\overline{\mathrm{xG}}$} \\
+    \textbf{Attacker Role} & \textbf{Count} & \textbf{\%} \\
     \midrule
-    Naïm Matoug        & 11 & 0.063 & 0.052 & 0.079 \\
-    Rayane Bounida     & 12 & 0.046 & 0.051 & 0.042 \\
-    Kaya Symons        & 19 & 0.044 & 0.027 & 0.114 \\
-    Fabio Kluit        & 26 & 0.043 & 0.035 & 0.054 \\
-    Michael Breij      & 53 & 0.042 & 0.031 & 0.069 \\
-    Kévin Monzialo     & 31 & 0.038 & 0.031 & 0.048 \\
-    Mart Remans        & 14 & 0.035 & 0.031 & 0.040 \\
-    Juho Kilo          & 31 & 0.035 & 0.029 & 0.044 \\
-    Lars de Blok       & 31 & 0.031 & 0.022 & 0.055 \\
-    Milan de Haan      & 40 & 0.031 & 0.028 & 0.036 \\
+    STATIC      & 305 & 52\% \\
+    DECOY       & 101 & 17\% \\
+    TARGET      & 100 & 17\% \\
+    SECOND\_BALL &  54 &  9\% \\
+    BLOCK\_DEF  &  14 &  2\% \\
+    BLOCK\_GK   &  13 &  2\% \\
+    \midrule
+    Total       & 587 & 100\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\subsection{Controlling for taker quality in SQ3}
+An ensemble of three tree-based classifiers (Random Forest, Extra
+Trees, Gradient Boosting) using 27 tracking-derived features was
+evaluated under three classification schemes:
 
-When TakerCTS is added as a covariate to the SQ3 regression, the
-coefficient on the central-zone delivery indicator
-(\texttt{IN\_PA3}/\texttt{IN\_GA2}/\texttt{OUT\_PA2}) decreases by
-$\Delta$ relative to the uncontrolled estimate, indicating that part —
-but not all — of the apparent effectiveness of these delivery types is
-attributable to the takers who choose them rather than to the delivery
-type itself. The controlled estimate remains positive and significant.
-This is consistent with a reading in which delivery zone is genuinely
-informative about effectiveness, but in which the selection of which
-delivery types are available depends on the quality of the taker: weaker
-takers can produce a corner, but cannot reliably produce a corner into
-the central penalty area.
+\begin{table}[h]
+  \centering
+  \caption{Attacker role classifier accuracy under different class
+           schemes (LOCO-CV on 587 labelled rows).}
+  \label{tab:sq2_role_acc}
+  \begin{tabular}{llr}
+    \toprule
+    \textbf{Scheme} & \textbf{Classes} & \textbf{Accuracy} \\
+    \midrule
+    6-class (full) & TARGET / DECOY / STATIC / SECOND\_BALL /
+                     BLOCK\_GK / BLOCK\_DEF & 74.1\% \\
+    5-class & TARGET / DECOY / STATIC / SECOND\_BALL /
+              BLOCKER & 74.4\% \\
+    4-class & RECEIVER / DECOY / STATIC / BLOCKER & 79.2\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-% TODO: Replace placeholder $\Delta$ once the controlled regression is run.
+The dominant features driving classification are \texttt{dist\_to\_gk\_at\_kick}
+(proximity to the goalkeeper at kick time), \texttt{dist\_ball\_at\_end}
+(distance to ball arrival point at delivery), \texttt{gap\_to\_closest}
+(gap between the player and the closest attacker to the ball), and
+\texttt{x\_end} (normalised horizontal position after the delivery).
 
-\section{SQ5: Worked Example}
+Per-class performance reveals that STATIC is classified with high
+fidelity (F1 = 0.86), TARGET with moderate fidelity (F1 = 0.69), and
+DECOY with lower fidelity (F1 = 0.59). The BLOCK\_DEF class achieves 0\%
+F1 in the full 6-class scheme — a direct consequence of having only 14
+labelled examples in the LOCO-CV training folds. To address the class
+imbalance, a data-augmentation scheme (y-coordinate flipping combined
+with SMOTE within each training fold) is currently being evaluated;
+results are expected to improve the minority-class performance
+meaningfully, with a target overall accuracy of 80\%+ on the 6-class
+problem.
+
+\subsection{Corner strategy taxonomy}
+\label{sec:results_sq2_taxonomy}
+
+After aggregating predicted roles per corner, the priority-ordered
+taxonomy (see Section~\ref{sec:sq2_taxonomy}) assigns each of the 67
+labelled corners a single strategic category. Using ground-truth role
+labels, the distribution across the test set is:
+
+\begin{table}[h]
+  \centering
+  \caption{Corner strategy taxonomy distribution on the 67 manually
+           labelled corners (ground-truth roles).}
+  \label{tab:sq2_taxonomy}
+  \begin{tabular}{llrr}
+    \toprule
+    \textbf{Tier} & \textbf{Category} & \textbf{$n$} & \textbf{\%} \\
+    \midrule
+    F & STATIC\_FORMATION  & 22 & 33\% \\
+    B & BLOCK\_DEF\_PULL   & 12 & 18\% \\
+    B & BLOCK\_GK\_WAVE    & 10 & 15\% \\
+    C & MULTI\_TARGET\_RUSH &  9 & 13\% \\
+    D & MULTI\_DECOY\_PULL  &  8 & 12\% \\
+    F & STATIC\_HEAVY       &  3 &  4\% \\
+    B & BLOCK\_GK\_SOLO     &  2 &  3\% \\
+    B & DOUBLE\_BLOCK       &  1 &  1\% \\
+    \midrule
+    \multicolumn{2}{l}{Total} & 67 & 100\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The most prevalent category is \textbf{STATIC\_FORMATION} (33\%), in which
+six or more attackers remain largely stationary and no dominant running
+threat is identified. Block-based strategies (Tier B) are collectively
+the most common tactical family: BLOCK\_DEF\_PULL (18\%),
+BLOCK\_GK\_WAVE (15\%), BLOCK\_GK\_SOLO (3\%), and DOUBLE\_BLOCK (1\%)
+together account for 37\% of corners. Dynamic strategies — three or more
+TARGETs (MULTI\_TARGET\_RUSH, 13\%) or three or more DECOYs
+(MULTI\_DECOY\_PULL, 12\%) — each appear in roughly one in eight corners.
+
+Note that the more granular Tier C/D categories that depend on running-line
+direction (NEAR\_POST\_TARGET, FAR\_POST\_TARGET, SCISSORS etc.) do not
+appear in this tabulation because running-line labels have not yet been
+applied to the labelled set. Once the running-line classifier is
+integrated, these categories will be populated and the taxonomy
+distribution will shift accordingly.
+
+On average, each labelled corner contains 1.5 TARGET players, 1.5 DECOY
+players, and 5.0 STATIC players, confirming that the majority of corner
+attackers take holding or static positions rather than dynamic running
+roles.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{SQ3 \& SQ4: No Preliminary Results}
+\label{sec:results_sq3_sq4}
+
+At this stage of the project, no preliminary results are reported for SQ3
+(effectiveness of offensive strategies against defensive structures) and
+SQ4 (individual player quality in corners). Both sub-questions require
+the SQ1 and SQ2 models to be finalised and applied to the full
+1{,}401-corner dataset before meaningful inference is possible. The
+interaction between offensive strategy (SQ2) and defensive structure
+(SQ1) is the core of SQ3, and the results from that analysis will
+directly inform which tactics are most effective against which defences.
+The plan for completing these analyses is outlined in
+Chapter~\ref{ch:plan}.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{SQ5: Data \& Video Analyser Platform}
 \label{sec:results_sq5}
 
-To demonstrate the end-to-end flow specified in
-Section~\ref{sec:sq5_dv_analyser}, the corners module of the D\&V
-Analyser was populated with the analytical outputs of SQ1–SQ4 and
-queried for a single fixture as a worked example. The worked example
-illustrates: (i) the opponent's empirical attacking and defensive
-profiles assembled from their corners in the dataset; (ii) the
-SQ3-derived ranking of delivery types conditional on that opponent's
-modal defensive setup; (iii) the magnet-board view (Component B)
-populated for one candidate attacker configuration; and (iv) one
-hyperlinked corner clip per offensive recommendation, played from the
-underlying video archive via the D\&V Analyser. The worked example is
-not used to draw inferential claims about the opponent in question; it
-serves as a demonstration that the integration described in
-Section~\ref{sec:sq5_dv_analyser} is operational on real data.
+\subsection{Platform overview}
 
-% TODO: figure(s) of the worked example once D&V Analyser corners module
-% is populated.
+Alongside the analytical research, a practical Data \& Video Analyser
+(D\&V Analyser) is being developed for direct use by FC Den Bosch. The
+platform serves as the integration layer through which the research
+outputs of SQ1--SQ4 will be delivered to coaching staff in a
+video-anchored, interactive format.
 
-\section{Summary of Findings}
-\label{sec:results_summary}
+The current version of the platform matches tracking and event data to
+raw video footage, enabling users to navigate directly from a corner in
+the data to the corresponding video clip. This synchronisation layer is
+the technical foundation on which the analytical outputs of this thesis
+will be placed: delivery zone profiles, defensive setup frequencies,
+attacker role patterns, and corner strategy categories will each be
+browsable alongside video evidence.
 
-The headline results of the empirical chapters are as follows.
-\begin{enumerate}
-  \item The depth $\times$ column delivery zone is the most
-        consequential predictor of corner effectiveness in this dataset.
-        Deliveries into the central two columns of the goal area and
-        penalty area generate the highest CTS and shot-generation
-        rates; deliveries to the outer zones (FRONT, EDGE, OUT) generate
-        almost no threat. Swing direction has at most a small marginal
-        effect once delivery zone is controlled for.
-  \item Ball flight in the MEDIUM peak-height band (3–8\,m) is associated
-        with higher effectiveness than either flatter or higher
-        deliveries; the contrast between MEDIUM and FLOATED, where
-        sample sizes are largest, is the substantive flight-based
-        finding.
-  \item Patterns suggested by the running-line and tactical-role
-        analyses (central-dominated runs higher CTS; near-post-dominated
-        runs lower CTS; GK-blocker presence higher CTS) are individually
-        plausible but rest on small cells; they are reported as
-        exploratory.
-  \item Corner-taker effects are non-trivial. The spread of TakerCTS
-        across takers with $\geq 10$ corners is wide; controlling for
-        taker quality reduces but does not eliminate the delivery-zone
-        coefficients in the SQ3 regression.
-  \item The applied integration described in
-        Section~\ref{sec:sq5_dv_analyser} is operational; a worked
-        example demonstrates the end-to-end flow from raw corner
-        records to a video-anchored opponent profile delivered through
-        the D\&V Analyser.
-\end{enumerate}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{Figures/Video & Data analyser.png}
+  \caption{Current state of the Data \& Video Analyser platform.
+           The interface synchronises SciSports tracking and event data
+           with match video footage, allowing the user to navigate
+           directly from any corner event in the dataset to the
+           corresponding video clip. The analytical results of SQ1--SQ4
+           will be surfaced through this interface.}
+  \label{fig:dv_analyser}
+\end{figure}
 
-The interpretation of these findings, their limitations, and the
-implications for tactical practice and for further analytical work are
-discussed in Chapter~\ref{ch:discussion}.
+\subsection{Data--video synchronisation}
+
+The synchronisation pipeline operates as follows. For each match in the
+dataset, the SciSports event timestamps (in milliseconds from kick-off)
+are aligned to the video frame index using a calibration offset derived
+from a known reference event (e.g.\ the kick-off whistle or a clearly
+identifiable ball event). Once the offset is established, any event
+timestamp can be converted to a video frame index with sub-second
+precision, enabling one-click navigation from any corner record to
+video footage of that corner.
+
+Currently the platform supports browsing all 1{,}893 corners in the
+dataset, filtering by team, match, corner side, and delivery type, and
+playing back the matched video clip with optional overlay of tracking
+data. The research results — delivery effectiveness profiles, team
+defensive tendencies, offensive strategy categories — will be added as
+an additional analytical layer once the SQ1 and SQ2 models are
+finalised. This will allow coaching staff to move seamlessly between a
+team's aggregate corner profile and individual video examples of each
+strategic pattern.
