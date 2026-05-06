@@ -1,0 +1,60 @@
+\textbf{Appendix}
+\begin{table}[h!]
+  \centering
+
+  \label{tab:tactical_categories}
+  \begin{tabular}{p{5cm} p{8.6cm}}
+    \toprule
+    \textbf{Category} & \textbf{Rule} \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier A — Goalkeeper-focused}} \\
+    \texttt{GOALKEEPER\_OVERLOAD} & $\geq 5$ attackers within 5~m of GK at setup; the
+                                ``Arsenal Tactic'' \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier B — Block-based}} \\
+    \texttt{DOUBLE\_BLOCK} & both \texttt{BLOCK\_GK} and \texttt{BLOCK\_DEF}
+                                  present \\
+    \texttt{BLOCK\_DEF\_PULL} & $\geq 1$ \texttt{BLOCK\_DEF} + $\geq 1$
+                                  \texttt{TARGET} \\
+    \texttt{BLOCK\_GK\_WAVE} & $\geq 1$ \texttt{BLOCK\_GK} + $\geq 2$
+                                  \texttt{TARGET} \\
+    \texttt{BLOCK\_GK\_SOLO} & $\geq 1$ \texttt{BLOCK\_GK} + $1$
+                                  \texttt{TARGET} \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier C — TARGET-driven}} \\
+    \texttt{MULTI\_TARGET\_RUSH} & $\geq 3$ TARGETs into the box \\
+    \texttt{TWO\_POST\_TARGETS}  & TARGETs at both \texttt{NEAR\_POST} and
+                                  \texttt{FAR\_POST} \\
+    \texttt{NEAR\_POST\_TARGET}  & TARGET on \texttt{NEAR\_POST} line \\
+    \texttt{FAR\_POST\_TARGET}   & TARGET on \texttt{FAR\_POST} line \\
+    \texttt{CENTRAL\_TARGET}     & TARGET on \texttt{CENTRAL} line \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier D — DECOY-driven}} \\
+    \texttt{MULTI\_DECOY\_PULL}      & $\geq 3$ DECOYs \\
+    \texttt{DECOY\_NEAR\_TARGET\_FAR} & DECOYs to near, TARGET to far \\
+    \texttt{DECOY\_FAR\_TARGET\_NEAR} & DECOYs to far, TARGET to near \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier E — Crossing patterns}} \\
+    \texttt{DOUBLE\_SCISSORS} & $\geq 2$ \texttt{CROSSING\_NF} \emph{and}
+                                $\geq 2$ \texttt{CROSSING\_FN} \\
+    \texttt{SCISSORS\_NF}      & $\geq 2$ \texttt{CROSSING\_NF} \\
+    \texttt{SCISSORS\_FN}      & $\geq 2$ \texttt{CROSSING\_FN} \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier F — Static formations}} \\
+    \texttt{STATIC\_HEAVY}     & $\geq 5$ STATIC + $\geq 1$ TARGET (designated
+                                header) \\
+    \texttt{STATIC\_FORMATION} & $\geq 6$ STATIC, no clear runners \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Tier G — Catch-all}} \\
+    \texttt{BALANCED\_BOX}      & runners present in $\geq 3$ of NEAR / CENTRAL
+                                / FAR \\
+    \texttt{MIXED\_DYNAMIC}     & $\geq 4$ runners, no dominant pattern \\
+    \texttt{MINIMAL\_PRESENCE}  & most attackers stay back \\
+    \texttt{UNCLASSIFIED}        & no rule matches \\
+    
+
+    \end{tabular}
+    \caption{Tactical category taxonomy for direct corners. Rules are evaluated
+    in the order listed; the first matching rule assigns the category.
+               Counts are over the attacking outfield players in the corner.} 
+    \end{table}
